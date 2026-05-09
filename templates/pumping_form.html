@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>Nueva extracción</title>
+</head>
+
+<body>
+    <div class="container"></div>
+        <div class="card">
+            <h1>Registrar extracción</h1>
+
+            <form method="POST">
+
+                <label>ML extraídos:</label>
+                <input type="number" name="amount_ml" required>
+
+                <br><br>
+
+                <label>Lado:</label>
+                <select name="side">
+                    <option value="left">Izquierdo</option>
+                    <option value="right">Derecho</option>
+                    <option value="both">Ambos</option>
+                </select>
+
+                <br><br>
+
+                <button type="submit">
+                    Guardar
+                </button>
+
+            </form>
+        </div>
+    </div>
+</body>
+
+</html>

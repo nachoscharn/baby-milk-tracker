@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Gráficos</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>Gráficos</h1>
+
+        <form method="GET" action="/charts">
+
+            <label>Rango:</label>
+
+            <select name="range">
+                <option
+                    value="day"
+                    {% if range_name == "day" %}selected{% endif %}
+                >
+                    1 día
+                </option>
+
+                <option
+                    value="week"
+                    {% if range_name == "week" %}selected{% endif %}
+                >
+                    1 semana
+                </option>
+
+                <option
+                    value="month"
+                    {% if range_name == "month" %}selected{% endif %}
+                >
+                    1 mes
+                </option>
+            </select>
+
+            <button type="submit">
+                Actualizar
+            </button>
+
+        </form>
+
+        <a class="button" href="/">
+            Volver
+        </a>
+
+    </div>
+
+    <div class="card">
+        <h2>Extracciones</h2>
+
+        <canvas id="pumpingChart"></canvas>
+    </div>
+
+    <div class="card">
+        <h2>Tomas</h2>
+
+        <canvas id="feedingChart"></canvas>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const pumpingData = {{ pumping_chart_data | tojson }};
+    const feedingData = {{ feeding_chart_data | tojson }};
+</script>
+
+<script>
+    const pumpingCtx = document.getElementById('pumpingChart');
+
+    const pumpingLabels = pumpingData.map(item => item.time);
+
+    const pumpingSideLabels = {
+        left: 'Pecho izquierdo',
+        right: 'Pecho derecho',
+        both: 'Ambos pechos',
+    };
+
+    new Chart(pumpingCtx, {
+        type: 'bar',
+
+        data: {
+            labels: pumpingLabels,
+
+            datasets: [
+                {
+                    label: 'Pecho izquierdo',
+
+                    data: pumpingData.map(
+                        item => item.side === 'left'
+                            ? item.amount_ml
+                            : null
+                    ),
+                },
+
+                {
+                    label: 'Pecho derecho',
+
+                    data: pumpingData.map(
+                        item => item.side === 'right'
+                            ? item.amount_ml
+                            : null
+                    ),
+                },
+
+                {
+                    label: 'Ambos pechos',
+
+                    data: pumpingData.map(
+                        item => item.side === 'both'
+                            ? item.amount_ml
+                            : null
+                    ),
+                },
+            ]
+        },
+
+        options: {
+            responsive: true,
+
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+
+                            const item = pumpingData[context.dataIndex];
+
+                            return `${item.amount_ml} ml - ${pumpingSideLabels[item.side]}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<script>
+    const feedingCtx = document.getElementById('feedingChart');
+
+    const feedingLabelMap = {
+        left: 1,
+        right: 2,
+        both: 3,
+        bottle: 4,
+    };
+
+    new Chart(feedingCtx, {
+        type: 'scatter',
+
+        data: {
+            datasets: [{
+                label: 'Tipo de toma',
+
+                data: feedingData.map((item, index) => ({
+                    x: index,
+                    y: feedingLabelMap[item.label],
+                    time: item.time,
+                })),
+
+                pointRadius: 6,
+                pointHoverRadius: 8,
+                showLine: false,
+            }]
+        },
+
+        options: {
+            responsive: true,
+
+            scales: {
+                x: {
+                    ticks: {
+                        callback: function(value) {
+                            const item = feedingData[value];
+                            return item ? item.time : "";
+                        }
+                    }
+                },
+
+                y: {
+                    min: 0.5,
+                    max: 4.5,
+
+                    afterBuildTicks: function(axis) {
+                        axis.ticks = [1, 2, 3, 4].map(value => ({ value }));
+                    },
+
+                    ticks: {
+                        callback: function(value) {
+
+                            const labels = {
+                                1: 'Pecho izquierdo',
+                                2: 'Pecho derecho',
+                                3: 'Ambos pechos',
+                                4: 'Mamadera',
+                            };
+
+                            return labels[value] || "";
+                        }
+                    }
+                }
+            },
+
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+
+                            const item = feedingData[context.raw.x];
+
+                            const labels = {
+                                left: 'Pecho izquierdo',
+                                right: 'Pecho derecho',
+                                both: 'Ambos pechos',
+                                bottle: 'Mamadera',
+                            };
+
+                            return `${item.time} - ${labels[item.label]}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+
+</html>

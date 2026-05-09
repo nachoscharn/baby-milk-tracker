@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <title>Baby Milk Tracker</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Baby Milk Tracker</h1>
+            <p>Registro de lactancia y extracción</p>
+
+            <ul>
+                <li><a href="/feeding/new">Registrar toma</a></li>
+                <li><a href="/pumping/new">Registrar extracción</a></li>
+            </ul>
+
+            <hr>
+
+            <form method="POST" action="/records/delete-all">
+                <button
+                    type="submit"
+                    onclick="return confirm('¿Seguro que querés borrar todo el historial? Esta acción no se puede deshacer.')"
+                >
+                    Borrar historial
+                </button>
+            </form>
+
+            <a class="button" href="/charts">Ver gráficos</a>
+
+            <h2>Última toma</h2>
+
+            {% if last_feeding %}
+                <p><strong>Hora:</strong> {{ last_feeding.created_at.strftime("%d/%m/%Y %H:%M") }}</p>
+                <p><strong>Hace:</strong> <span class="elapsed-time" data-time="{{ last_feeding.created_at.isoformat() }}"></span></p>
+
+                {% if last_feeding.feeding_type == "breast" %}
+                    <p><strong>Tipo:</strong> Pecho</p>
+                    <p><strong>Lado:</strong> {{ last_feeding.side }}</p>
+                    <p><strong>Duración:</strong> {{ last_feeding.duration_min or "-" }} min</p>
+                {% else %}
+                    <p><strong>Tipo:</strong> Mamadera</p>
+                    <p><strong>Cantidad:</strong> {{ last_feeding.amount_ml }} ml</p>
+                    <p><strong>Duración:</strong> {{ last_feeding.duration_min or "-" }} min</p>
+                {% endif %}
+            {% else %}
+                <p>No hay tomas registradas todavía.</p>
+            {% endif %}
+
+            <hr>
+
+            <h2>Última extracción</h2>
+
+            {% if last_pumping %}
+                <p><strong>Hora:</strong> {{ last_pumping.created_at.strftime("%d/%m/%Y %H:%M") }}</p>
+                <p><strong>Hace:</strong> <span class="elapsed-time" data-time="{{ last_pumping.created_at.isoformat() }}"></span></p>
+                <p><strong>Cantidad:</strong> {{ last_pumping.amount_ml }} ml</p>
+                <p><strong>Lado:</strong> {{ last_pumping.side }}</p>
+            {% else %}
+                <p>No hay extracciones registradas todavía.</p>
+            {% endif %}
+
+            <script>
+                function formatElapsed(ms) {
+                    const totalSeconds = Math.floor(ms / 1000);
+                    const hours = Math.floor(totalSeconds / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    const seconds = totalSeconds % 60;
+
+                    return `${hours}h ${minutes}m ${seconds}s`;
+                }
+
+                function updateElapsedTimes() {
+                    const elements = document.querySelectorAll(".elapsed-time");
+
+                    elements.forEach((element) => {
+                        const createdAt = new Date(element.dataset.time);
+                        const now = new Date();
+                        const elapsedMs = now - createdAt;
+
+                        element.textContent = formatElapsed(elapsedMs);
+                    });
+                }
+
+                updateElapsedTimes();
+                setInterval(updateElapsedTimes, 1000);
+            </script>
+        </div>
+    </div>
+</body>
+
+</html>
