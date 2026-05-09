@@ -1,4 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import timedelta, datetime
+from baby_milk_tracker.time_utils import now_argentina
+
 
 from baby_milk_tracker.database import get_connection
 from baby_milk_tracker.models import Feeding, Pumping
@@ -123,7 +125,7 @@ def get_start_datetime(range_name: str) -> datetime:
 
     days = RANGE_DAYS[range_name]
 
-    return datetime.now() - timedelta(days=days)
+    return now_argentina() - timedelta(days=days)
 
 def get_pumpings_since(start_datetime: datetime) -> list[Pumping]:
     with get_connection() as conn:

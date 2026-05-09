@@ -1,4 +1,4 @@
-from datetime import datetime
+from baby_milk_tracker.time_utils import now_argentina
 
 from flask import Flask, render_template, request, redirect
 
@@ -17,6 +17,7 @@ from baby_milk_tracker.storage import (
 )
 
 app = Flask(__name__)
+init_db()
 
 @app.route("/")
 def index():
@@ -36,7 +37,7 @@ def new_pumping():
         side = request.form["side"]
 
         pumping = Pumping(
-            created_at=datetime.now(),
+            created_at=now_argentina(),
             amount_ml=amount_ml,
             side=side,
         )
@@ -57,7 +58,7 @@ def new_feeding():
 
         if feeding_type == "breast":
             feeding = Feeding(
-                created_at=datetime.now(),
+                created_at=now_argentina(),
                 feeding_type="breast",
                 side=request.form["side"],
                 duration_min=duration_min,
@@ -68,7 +69,7 @@ def new_feeding():
             amount_ml = request.form.get("amount_ml")
 
             feeding = Feeding(
-                created_at=datetime.now(),
+                created_at=now_argentina(),
                 feeding_type="bottle",
                 side=None,
                 duration_min=duration_min,

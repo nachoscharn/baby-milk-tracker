@@ -1,4 +1,4 @@
-from datetime import datetime
+from baby_milk_tracker.time_utils import now_argentina
 
 from baby_milk_tracker.models import Feeding, Pumping
 from baby_milk_tracker.storage import save_feeding, save_pumping
@@ -56,7 +56,7 @@ def confirm_save() -> bool:
         print(f"Opción inválida: {option}")
 
 def register_feeding() -> Feeding:
-    created_at = datetime.now()
+    created_at = now_argentina()
 
     while True:
         feeding_type = input(
@@ -132,7 +132,7 @@ def print_feeding(feeding: Feeding) -> None:
 
 
 def register_pumping() -> Pumping:
-    created_at = datetime.now()
+    created_at = now_argentina()
 
     amount_ml = int(input("¿Cuántos ml se extrajo?: "))
 
