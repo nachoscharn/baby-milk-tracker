@@ -47,3 +47,9 @@ def init_db() -> None:
         )
 
         conn.commit()
+
+def get_placeholder() -> str:
+    if DATABASE_URL:
+        return "%s"
+
+    return "?"

@@ -1,9 +1,9 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
+
+from baby_milk_tracker.database import get_connection, get_placeholder
+from baby_milk_tracker.models import Feeding, Pumping
 from baby_milk_tracker.time_utils import now_argentina
 
-
-from baby_milk_tracker.database import get_connection
-from baby_milk_tracker.models import Feeding, Pumping
 
 RANGE_DAYS = {
     "day": 1,
@@ -11,12 +11,15 @@ RANGE_DAYS = {
     "month": 30,
 }
 
+
 def save_feeding(feeding: Feeding) -> None:
+    placeholder = get_placeholder()
+
     with get_connection() as conn:
         cursor = conn.cursor()
 
         cursor.execute(
-            """
+            f"""
             INSERT INTO feedings (
                 created_at,
                 feeding_type,
@@ -24,7 +27,13 @@ def save_feeding(feeding: Feeding) -> None:
                 duration_min,
                 amount_ml
             )
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (
+                {placeholder},
+                {placeholder},
+                {placeholder},
+                {placeholder},
+                {placeholder}
+            )
             """,
             (
                 feeding.created_at.isoformat(),
@@ -32,32 +41,40 @@ def save_feeding(feeding: Feeding) -> None:
                 feeding.side,
                 feeding.duration_min,
                 feeding.amount_ml,
-            )
+            ),
         )
 
         conn.commit()
 
+
 def save_pumping(pumping: Pumping) -> None:
+    placeholder = get_placeholder()
+
     with get_connection() as conn:
         cursor = conn.cursor()
 
         cursor.execute(
-            """
+            f"""
             INSERT INTO pumpings (
                 created_at,
                 amount_ml,
                 side
             )
-            VALUES (?, ?, ?)
+            VALUES (
+                {placeholder},
+                {placeholder},
+                {placeholder}
+            )
             """,
             (
                 pumping.created_at.isoformat(),
                 pumping.amount_ml,
                 pumping.side,
-            )
+            ),
         )
 
         conn.commit()
+
 
 def get_last_feeding() -> Feeding | None:
     with get_connection() as conn:
@@ -85,6 +102,7 @@ def get_last_feeding() -> Feeding | None:
         amount_ml=row[4],
     )
 
+
 def get_last_pumping() -> Pumping | None:
     with get_connection() as conn:
         cursor = conn.cursor()
@@ -109,6 +127,7 @@ def get_last_pumping() -> Pumping | None:
         side=row[2],
     )
 
+
 def delete_all_records() -> None:
     with get_connection() as conn:
         cursor = conn.cursor()
@@ -127,15 +146,18 @@ def get_start_datetime(range_name: str) -> datetime:
 
     return now_argentina() - timedelta(days=days)
 
+
 def get_pumpings_since(start_datetime: datetime) -> list[Pumping]:
+    placeholder = get_placeholder()
+
     with get_connection() as conn:
         cursor = conn.cursor()
 
         cursor.execute(
-            """
+            f"""
             SELECT created_at, amount_ml, side
             FROM pumpings
-            WHERE created_at >= ?
+            WHERE created_at >= {placeholder}
             ORDER BY created_at
             """,
             (start_datetime.isoformat(),),
@@ -152,15 +174,18 @@ def get_pumpings_since(start_datetime: datetime) -> list[Pumping]:
         for row in rows
     ]
 
+
 def get_feedings_since(start_datetime: datetime) -> list[Feeding]:
+    placeholder = get_placeholder()
+
     with get_connection() as conn:
         cursor = conn.cursor()
 
         cursor.execute(
-            """
+            f"""
             SELECT created_at, feeding_type, side, duration_min, amount_ml
             FROM feedings
-            WHERE created_at >= ?
+            WHERE created_at >= {placeholder}
             ORDER BY created_at
             """,
             (start_datetime.isoformat(),),
