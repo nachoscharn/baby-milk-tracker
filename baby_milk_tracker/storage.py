@@ -203,3 +203,82 @@ def get_feedings_since(start_datetime: datetime) -> list[Feeding]:
         )
         for row in rows
     ]
+
+def get_all_feedings() -> list[dict]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT id, created_at, feeding_type, side, duration_min, amount_ml
+            FROM feedings
+            ORDER BY created_at DESC
+            """
+        )
+
+        rows = cursor.fetchall()
+
+    return [
+        {
+            "id": row[0],
+            "created_at": datetime.fromisoformat(row[1]),
+            "feeding_type": row[2],
+            "side": row[3],
+            "duration_min": row[4],
+            "amount_ml": row[5],
+        }
+        for row in rows
+    ]
+
+
+def get_all_pumpings() -> list[dict]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT id, created_at, amount_ml, side
+            FROM pumpings
+            ORDER BY created_at DESC
+            """
+        )
+
+        rows = cursor.fetchall()
+
+    return [
+        {
+            "id": row[0],
+            "created_at": datetime.fromisoformat(row[1]),
+            "amount_ml": row[2],
+            "side": row[3],
+        }
+        for row in rows
+    ]
+
+
+def delete_feeding(feeding_id: int) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            f"DELETE FROM feedings WHERE id = {placeholder}",
+            (feeding_id,),
+        )
+
+        conn.commit()
+
+
+def delete_pumping(pumping_id: int) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            f"DELETE FROM pumpings WHERE id = {placeholder}",
+            (pumping_id,),
+        )
+
+        conn.commit()

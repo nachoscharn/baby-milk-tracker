@@ -1,114 +1,207 @@
-<!DOCTYPE html>
-<html lang="es">
+    <!DOCTYPE html>
+    <html lang="es">
 
-<head>
-    <meta charset="UTF-8">
+    <head>
+        <meta charset="UTF-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        >
 
-    <title>Baby Milk Tracker</title>
+        <title>Baby Milk Tracker</title>
 
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}"
-    >
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='style.css') }}"
+        >
 
-    <link
-        rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-    >
-</head>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        >
+    </head>
 
-<body>
+    <body>
 
-<div class="container">
+    <div class="container">
 
-    <div class="card">
+        <div class="card">
 
-        <h1>Baby Milk Tracker</h1>
+            <h1>Baby Milk Tracker</h1>
 
-        <p>
-            Registro de lactancia y extracción
-        </p>
+            <p>
+                Registro de lactancia y extracción
+            </p>
 
-        <div class="home-actions">
+            <div class="home-actions">
 
-            <a
-                class="button"
-                href="/feeding/new"
-            >
-                <i class="fa-solid fa-baby"></i>
-                Registrar toma
-            </a>
-
-            <a
-                class="button"
-                href="/pumping/new"
-            >
-                <i class="fa-solid fa-droplet"></i>
-                Registrar extracción
-            </a>
-
-            <a
-                class="button"
-                href="/charts"
-            >
-                <i class="fa-solid fa-chart-line"></i>
-                Ver gráficos
-            </a>
+                <a
+                    class="button"
+                    href="/feeding/new"
+                >
+                    <i class="fa-solid fa-baby"></i>
+                    Registrar toma
+                </a>
+            
+                <a
+                    class="button"
+                    href="/pumping/new"
+                >
+                    <i class="fa-solid fa-droplet"></i>
+                    Registrar extracción
+                </a>
+            
+                <a
+                    class="button"
+                    href="/charts"
+                >
+                    <i class="fa-solid fa-chart-line"></i>
+                    Ver gráficos
+                </a>
+            
+                <a
+                    class="button"
+                    href="/history"
+                >
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    Ver historial
+                </a>
+            
+            </div>
 
         </div>
 
-    </div>
+        <div class="card">
 
-    <div class="card">
+            <h2>
+                <i class="fa-solid fa-baby"></i>
+                Última toma
+            </h2>
 
-        <h2>
-            <i class="fa-solid fa-baby"></i>
-            Última toma
-        </h2>
-
-        {% if last_feeding %}
-
-            <p>
-                <strong>Hace:</strong>
-            </p>
-
-            <p
-                class="elapsed-time stats-time"
-                data-time="{{ last_feeding.created_at.isoformat() }}"
-            ></p>
-
-            <p>
-                <strong>Hora:</strong>
-                {{ last_feeding.created_at.strftime("%d/%m/%Y %H:%M") }}
-            </p>
-
-            {% if last_feeding.feeding_type == "breast" %}
+            {% if last_feeding %}
 
                 <p>
-                    <strong>Tipo:</strong>
-                    Pecho
+                    <strong>Hace:</strong>
                 </p>
 
-                {% if last_feeding.side == "left" %}
+                <p
+                    class="elapsed-time stats-time"
+                    data-time="{{ last_feeding.created_at.isoformat() }}"
+                ></p>
+
+                <p>
+                    <strong>Hora:</strong>
+                    {{ last_feeding.created_at.strftime("%d/%m/%Y %H:%M") }}
+                </p>
+
+                {% if last_feeding.feeding_type == "breast" %}
+
+                    <p>
+                        <strong>Tipo:</strong>
+                        Pecho
+                    </p>
+
+                    {% if last_feeding.side == "left" %}
+
+                        <p>
+                            <strong>Lado:</strong>
+                            Izquierdo
+                        </p>
+
+                    {% elif last_feeding.side == "right" %}
+
+                        <p>
+                            <strong>Lado:</strong>
+                            Derecho
+                        </p>
+
+                    {% elif last_feeding.side == "both" %}
+
+                        <p>
+                            <strong>Lado:</strong>
+                            Ambos
+                        </p>
+
+                    {% endif %}
+
+                    <p>
+                        <strong>Duración:</strong>
+                        {{ last_feeding.duration_min or "-" }} min
+                    </p>
+
+                {% else %}
+
+                    <p>
+                        <strong>Tipo:</strong>
+                        Mamadera
+                    </p>
+
+                    <p>
+                        <strong>Cantidad:</strong>
+                        {{ last_feeding.amount_ml }} ml
+                    </p>
+
+                    <p>
+                        <strong>Duración:</strong>
+                        {{ last_feeding.duration_min or "-" }} min
+                    </p>
+
+                {% endif %}
+
+            {% else %}
+
+                <p>
+                    No hay tomas registradas todavía.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+        <div class="card">
+
+            <h2>
+                <i class="fa-solid fa-droplet"></i>
+                Última extracción
+            </h2>
+
+            {% if last_pumping %}
+
+                <p>
+                    <strong>Hace:</strong>
+                </p>
+
+                <p
+                    class="elapsed-time stats-time"
+                    data-time="{{ last_pumping.created_at.isoformat() }}"
+                ></p>
+
+                <p>
+                    <strong>Hora:</strong>
+                    {{ last_pumping.created_at.strftime("%d/%m/%Y %H:%M") }}
+                </p>
+
+                <p>
+                    <strong>Cantidad:</strong>
+                    {{ last_pumping.amount_ml }} ml
+                </p>
+
+                {% if last_pumping.side == "left" %}
 
                     <p>
                         <strong>Lado:</strong>
                         Izquierdo
                     </p>
 
-                {% elif last_feeding.side == "right" %}
+                {% elif last_pumping.side == "right" %}
 
                     <p>
                         <strong>Lado:</strong>
                         Derecho
                     </p>
 
-                {% elif last_feeding.side == "both" %}
+                {% elif last_pumping.side == "both" %}
 
                     <p>
                         <strong>Lado:</strong>
@@ -117,173 +210,88 @@
 
                 {% endif %}
 
-                <p>
-                    <strong>Duración:</strong>
-                    {{ last_feeding.duration_min or "-" }} min
-                </p>
-
             {% else %}
 
                 <p>
-                    <strong>Tipo:</strong>
-                    Mamadera
-                </p>
-
-                <p>
-                    <strong>Cantidad:</strong>
-                    {{ last_feeding.amount_ml }} ml
-                </p>
-
-                <p>
-                    <strong>Duración:</strong>
-                    {{ last_feeding.duration_min or "-" }} min
+                    No hay extracciones registradas todavía.
                 </p>
 
             {% endif %}
 
-        {% else %}
+        </div>
 
-            <p>
-                No hay tomas registradas todavía.
-            </p>
+        <div class="card">
 
-        {% endif %}
+            <h2>
+                <i class="fa-solid fa-gear"></i>
+                Administración
+            </h2>
 
-    </div>
-
-    <div class="card">
-
-        <h2>
-            <i class="fa-solid fa-droplet"></i>
-            Última extracción
-        </h2>
-
-        {% if last_pumping %}
-
-            <p>
-                <strong>Hace:</strong>
-            </p>
-
-            <p
-                class="elapsed-time stats-time"
-                data-time="{{ last_pumping.created_at.isoformat() }}"
-            ></p>
-
-            <p>
-                <strong>Hora:</strong>
-                {{ last_pumping.created_at.strftime("%d/%m/%Y %H:%M") }}
-            </p>
-
-            <p>
-                <strong>Cantidad:</strong>
-                {{ last_pumping.amount_ml }} ml
-            </p>
-
-            {% if last_pumping.side == "left" %}
-
-                <p>
-                    <strong>Lado:</strong>
-                    Izquierdo
-                </p>
-
-            {% elif last_pumping.side == "right" %}
-
-                <p>
-                    <strong>Lado:</strong>
-                    Derecho
-                </p>
-
-            {% elif last_pumping.side == "both" %}
-
-                <p>
-                    <strong>Lado:</strong>
-                    Ambos
-                </p>
-
-            {% endif %}
-
-        {% else %}
-
-            <p>
-                No hay extracciones registradas todavía.
-            </p>
-
-        {% endif %}
-
-    </div>
-
-    <div class="card">
-
-        <h2>
-            <i class="fa-solid fa-gear"></i>
-            Administración
-        </h2>
-
-        <form
-            method="POST"
-            action="/records/delete-all"
-        >
-
-            <button
-                class="danger"
-                type="submit"
-                onclick="return confirm('¿Seguro que querés borrar todo el historial? Esta acción no se puede deshacer.')"
+            <form
+                method="POST"
+                action="/records/delete-all"
             >
-                <i class="fa-solid fa-trash"></i>
-                Borrar historial
-            </button>
 
-        </form>
+                <button
+                    class="danger"
+                    type="submit"
+                    onclick="return confirm('¿Seguro que querés borrar todo el historial? Esta acción no se puede deshacer.')"
+                >
+                    <i class="fa-solid fa-trash"></i>
+                    Borrar historial
+                </button>
+
+            </form>
+
+        </div>
 
     </div>
 
-</div>
+    <script>
 
-<script>
+        function formatElapsed(ms) {
 
-    function formatElapsed(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
 
-        const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
 
-        const hours = Math.floor(totalSeconds / 3600);
-
-        const minutes = Math.floor(
-            (totalSeconds % 3600) / 60
-        );
-
-        const seconds = totalSeconds % 60;
-
-        return `${hours}h ${minutes}m ${seconds}s`;
-    }
-
-    function updateElapsedTimes() {
-
-        const elements = document.querySelectorAll(
-            ".elapsed-time"
-        );
-
-        elements.forEach((element) => {
-
-            const createdAt = new Date(
-                element.dataset.time
+            const minutes = Math.floor(
+                (totalSeconds % 3600) / 60
             );
 
-            const now = new Date();
+            const seconds = totalSeconds % 60;
 
-            const elapsedMs = now - createdAt;
+            return `${hours}h ${minutes}m ${seconds}s`;
+        }
 
-            element.textContent = formatElapsed(
-                elapsedMs
+        function updateElapsedTimes() {
+
+            const elements = document.querySelectorAll(
+                ".elapsed-time"
             );
-        });
-    }
 
-    updateElapsedTimes();
+            elements.forEach((element) => {
 
-    setInterval(updateElapsedTimes, 1000);
+                const createdAt = new Date(
+                    element.dataset.time
+                );
 
-</script>
+                const now = new Date();
 
-</body>
+                const elapsedMs = now - createdAt;
 
-</html>
+                element.textContent = formatElapsed(
+                    elapsedMs
+                );
+            });
+        }
+
+        updateElapsedTimes();
+
+        setInterval(updateElapsedTimes, 1000);
+
+    </script>
+
+    </body>
+
+    </html>

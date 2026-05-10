@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Historial</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+        <h1>
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            Historial
+        </h1>
+
+        <a class="button" href="/">
+            <i class="fa-solid fa-arrow-left"></i>
+            Volver
+        </a>
+    </div>
+
+    <div class="card">
+        <h2>
+            <i class="fa-solid fa-baby"></i>
+            Tomas
+        </h2>
+
+        {% if feedings %}
+
+            {% for feeding in feedings %}
+
+                <div class="history-item">
+
+                    <p>
+                        <strong>Hora:</strong>
+                        {{ feeding.created_at.strftime("%d/%m/%Y %H:%M") }}
+                    </p>
+
+                    {% if feeding.feeding_type == "breast" %}
+
+                        <p><strong>Tipo:</strong> Pecho</p>
+
+                        {% if feeding.side == "left" %}
+                            <p><strong>Lado:</strong> Izquierdo</p>
+                        {% elif feeding.side == "right" %}
+                            <p><strong>Lado:</strong> Derecho</p>
+                        {% elif feeding.side == "both" %}
+                            <p><strong>Lado:</strong> Ambos</p>
+                        {% endif %}
+
+                        <p>
+                            <strong>Duración:</strong>
+                            {{ feeding.duration_min or "-" }} min
+                        </p>
+
+                    {% else %}
+
+                        <p><strong>Tipo:</strong> Mamadera</p>
+                        <p><strong>Cantidad:</strong> {{ feeding.amount_ml }} ml</p>
+
+                        <p>
+                            <strong>Duración:</strong>
+                            {{ feeding.duration_min or "-" }} min
+                        </p>
+
+                    {% endif %}
+
+                    <form
+                        method="POST"
+                        action="/feeding/{{ feeding.id }}/delete"
+                    >
+                        <button
+                            class="danger"
+                            type="submit"
+                            onclick="return confirm('¿Seguro que querés borrar esta toma?')"
+                        >
+                            <i class="fa-solid fa-trash"></i>
+                            Borrar
+                        </button>
+                    </form>
+
+                </div>
+
+                <hr>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>No hay tomas registradas.</p>
+
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>
+            <i class="fa-solid fa-droplet"></i>
+            Extracciones
+        </h2>
+
+        {% if pumpings %}
+
+            {% for pumping in pumpings %}
+
+                <div class="history-item">
+
+                    <p>
+                        <strong>Hora:</strong>
+                        {{ pumping.created_at.strftime("%d/%m/%Y %H:%M") }}
+                    </p>
+
+                    <p>
+                        <strong>Cantidad:</strong>
+                        {{ pumping.amount_ml }} ml
+                    </p>
+
+                    {% if pumping.side == "left" %}
+                        <p><strong>Lado:</strong> Izquierdo</p>
+                    {% elif pumping.side == "right" %}
+                        <p><strong>Lado:</strong> Derecho</p>
+                    {% elif pumping.side == "both" %}
+                        <p><strong>Lado:</strong> Ambos</p>
+                    {% endif %}
+
+                    <form
+                        method="POST"
+                        action="/pumping/{{ pumping.id }}/delete"
+                    >
+                        <button
+                            class="danger"
+                            type="submit"
+                            onclick="return confirm('¿Seguro que querés borrar esta extracción?')"
+                        >
+                            <i class="fa-solid fa-trash"></i>
+                            Borrar
+                        </button>
+                    </form>
+
+                </div>
+
+                <hr>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>No hay extracciones registradas.</p>
+
+        {% endif %}
+    </div>
+
+</div>
+
+</body>
+
+</html>

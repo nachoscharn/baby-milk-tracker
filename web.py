@@ -15,11 +15,25 @@ from baby_milk_tracker.storage import (
     get_feedings_since,
     get_pumpings_since,
     get_start_datetime,
+    get_all_feedings,
+    get_all_pumpings,
+    delete_feeding,
+    delete_pumping,
 
 )
 
 app = Flask(__name__)
 init_db()
+
+def get_created_at_from_form():
+    created_at = request.form.get("created_at")
+
+    if not created_at:
+        return now_argentina()
+
+    return datetime.fromisoformat(created_at).replace(
+        tzinfo=ARGENTINA_TIMEZONE
+    )
 
 @app.route("/")
 def index():
@@ -32,17 +46,28 @@ def index():
         last_pumping=last_pumping,
     )
 
+@app.route("/history")
+def history():
+    feedings = get_all_feedings()
+    pumpings = get_all_pumpings()
 
-
-def get_created_at_from_form():
-    created_at = request.form.get("created_at")
-
-    if not created_at:
-        return now_argentina()
-
-    return datetime.fromisoformat(created_at).replace(
-        tzinfo=ARGENTINA_TIMEZONE
+    return render_template(
+        "history.html",
+        feedings=feedings,
+        pumpings=pumpings,
     )
+
+
+@app.route("/feeding/<int:feeding_id>/delete", methods=["POST"])
+def delete_feeding_route(feeding_id: int):
+    delete_feeding(feeding_id)
+    return redirect("/history")
+
+
+@app.route("/pumping/<int:pumping_id>/delete", methods=["POST"])
+def delete_pumping_route(pumping_id: int):
+    delete_pumping(pumping_id)
+    return redirect("/history")
 
 @app.route("/pumping/new", methods=["GET", "POST"])
 def new_pumping():
