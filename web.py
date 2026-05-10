@@ -1,4 +1,6 @@
-from baby_milk_tracker.time_utils import now_argentina
+from datetime import datetime
+
+from baby_milk_tracker.time_utils import now_argentina, ARGENTINA_TIMEZONE
 
 from flask import Flask, render_template, request, redirect
 
@@ -30,6 +32,18 @@ def index():
         last_pumping=last_pumping,
     )
 
+
+
+def get_created_at_from_form():
+    created_at = request.form.get("created_at")
+
+    if not created_at:
+        return now_argentina()
+
+    return datetime.fromisoformat(created_at).replace(
+        tzinfo=ARGENTINA_TIMEZONE
+    )
+
 @app.route("/pumping/new", methods=["GET", "POST"])
 def new_pumping():
     if request.method == "POST":
@@ -37,7 +51,7 @@ def new_pumping():
         side = request.form["side"]
 
         pumping = Pumping(
-            created_at=now_argentina(),
+            created_at=get_created_at_from_form(),
             amount_ml=amount_ml,
             side=side,
         )
@@ -58,7 +72,7 @@ def new_feeding():
 
         if feeding_type == "breast":
             feeding = Feeding(
-                created_at=now_argentina(),
+                created_at=get_created_at_from_form(),
                 feeding_type="breast",
                 side=request.form["side"],
                 duration_min=duration_min,
@@ -69,7 +83,7 @@ def new_feeding():
             amount_ml = request.form.get("amount_ml")
 
             feeding = Feeding(
-                created_at=now_argentina(),
+                created_at=get_created_at_from_form(),
                 feeding_type="bottle",
                 side=None,
                 duration_min=duration_min,
