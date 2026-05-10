@@ -2,75 +2,115 @@
 <html lang="es">
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Nueva toma</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 </head>
 
 <body>
-    <div class="container">
-        <div class="card">
 
-            <h1>Registrar toma</h1>
+<div class="container">
 
-            <form method="POST">
+    <div class="card">
 
-                <label>Tipo:</label>
-                <select name="feeding_type" id="feeding_type">
-                    <option value="breast">Pecho</option>
-                    <option value="bottle">Mamadera</option>
+        <h1>
+            Registrar toma
+        </h1>
+
+        <form method="POST">
+
+            <label>Tipo:</label>
+
+            <select name="feeding_type" id="feeding_type">
+                <option value="breast">Pecho</option>
+                <option value="bottle">Mamadera</option>
+            </select>
+
+            <div id="side_field">
+
+                <label>Lado:</label>
+
+                <select name="side">
+                    <option value="left">Izquierdo</option>
+                    <option value="right">Derecho</option>
+                    <option value="both">Ambos</option>
                 </select>
 
-                <br><br>
+            </div>
 
-                <div id="side_field">
-                    <label>Lado:</label>
-                    <select name="side">
-                        <option value="left">Izquierdo</option>
-                        <option value="right">Derecho</option>
-                        <option value="both">Ambos</option>
-                    </select>
-                    <br><br>
-                </div>
+            <div id="amount_field">
 
-                <div id="amount_field">
-                    <label>ML:</label>
-                    <input type="number" name="amount_ml">
-                    <br><br>
-                </div>
+                <label>ML:</label>
 
-                <label>Duración en minutos (opcional):</label>
-                <input type="number" name="duration_min">
+                <input
+                    type="number"
+                    name="amount_ml"
+                    min="0"
+                >
 
-                <br><br>
+            </div>
 
-                <button type="submit">
-                    Guardar
-                </button>
+            <label>Duración en minutos (opcional):</label>
 
-            </form>
+            <input
+                type="number"
+                name="duration_min"
+                min="0"
+            >
 
-            <script>
-                function updateForm() {
-                    const feedingType = document.getElementById("feeding_type").value;
-                    const sideField = document.getElementById("side_field");
-                    const amountField = document.getElementById("amount_field");
+            <button type="submit">
+                <i class="fa-solid fa-check"></i>
+                Guardar
+            </button>
 
-                    if (feedingType === "breast") {
-                        sideField.style.display = "block";
-                        amountField.style.display = "none";
-                    } else {
-                        sideField.style.display = "none";
-                        amountField.style.display = "block";
-                    }
-                }
+        </form>
 
-                document.getElementById("feeding_type").addEventListener("change", updateForm);
-                updateForm();
-            </script>
-        </div>
+        <a class="button" href="/">
+            <i class="fa-solid fa-arrow-left"></i>
+            Volver
+        </a>
+
     </div>
+
+</div>
+
+<script>
+    function updateForm() {
+        const feedingType = document.getElementById("feeding_type").value;
+        const sideField = document.getElementById("side_field");
+        const amountField = document.getElementById("amount_field");
+
+        if (feedingType === "breast") {
+            sideField.style.display = "block";
+            amountField.style.display = "none";
+        } else {
+            sideField.style.display = "none";
+            amountField.style.display = "block";
+        }
+    }
+
+    document
+        .getElementById("feeding_type")
+        .addEventListener("change", updateForm);
+
+    updateForm();
+</script>
+
 </body>
 
 </html>

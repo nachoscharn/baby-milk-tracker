@@ -1,11 +1,19 @@
+import os
 import sqlite3
 from pathlib import Path
+
+import psycopg
 
 
 DB_PATH = Path("data/baby_milk_tracker.db")
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 
 def get_connection():
+    if DATABASE_URL:
+        return psycopg.connect(DATABASE_URL)
+
     DB_PATH.parent.mkdir(exist_ok=True)
     return sqlite3.connect(DB_PATH)
 
@@ -17,7 +25,7 @@ def init_db() -> None:
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS feedings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 created_at TEXT NOT NULL,
                 feeding_type TEXT NOT NULL,
                 side TEXT,
@@ -30,7 +38,7 @@ def init_db() -> None:
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS pumpings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id SERIAL PRIMARY KEY,
                 created_at TEXT NOT NULL,
                 amount_ml INTEGER NOT NULL,
                 side TEXT
@@ -38,4 +46,4 @@ def init_db() -> None:
             """
         )
 
-        conn.commit()   
+        conn.commit()

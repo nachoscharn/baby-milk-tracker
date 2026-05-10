@@ -15,6 +15,11 @@
         rel="stylesheet"
         href="{{ url_for('static', filename='style.css') }}"
     >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 </head>
 
 <body>
@@ -23,13 +28,17 @@
 
     <div class="card">
 
-        <h1>Gráficos</h1>
+        <h1>
+            <i class="fa-solid fa-chart-line"></i>
+            Gráficos
+        </h1>
 
         <form method="GET" action="/charts">
 
             <label>Rango:</label>
 
             <select name="range">
+
                 <option
                     value="day"
                     {% if range_name == "day" %}selected{% endif %}
@@ -50,30 +59,47 @@
                 >
                     1 mes
                 </option>
+
             </select>
 
             <button type="submit">
+                <i class="fa-solid fa-rotate"></i>
                 Actualizar
             </button>
 
         </form>
 
         <a class="button" href="/">
+            <i class="fa-solid fa-arrow-left"></i>
             Volver
         </a>
 
     </div>
 
     <div class="card">
-        <h2>Extracciones</h2>
 
-        <canvas id="pumpingChart"></canvas>
+        <h2>
+            <i class="fa-solid fa-droplet"></i>
+            Extracciones
+        </h2>
+
+        <div class="chart-container">
+            <canvas id="pumpingChart"></canvas>
+        </div>
+
     </div>
 
     <div class="card">
-        <h2>Tomas</h2>
 
-        <canvas id="feedingChart"></canvas>
+        <h2>
+            <i class="fa-solid fa-baby"></i>
+            Tomas
+        </h2>
+
+        <div class="chart-container">
+            <canvas id="feedingChart"></canvas>
+        </div>
+
     </div>
 
 </div>
@@ -86,9 +112,14 @@
 </script>
 
 <script>
-    const pumpingCtx = document.getElementById('pumpingChart');
 
-    const pumpingLabels = pumpingData.map(item => item.time);
+    const pumpingCtx = document.getElementById(
+        'pumpingChart'
+    );
+
+    const pumpingLabels = pumpingData.map(
+        item => item.time
+    );
 
     const pumpingSideLabels = {
         left: 'Pecho izquierdo',
@@ -97,12 +128,15 @@
     };
 
     new Chart(pumpingCtx, {
+
         type: 'bar',
 
         data: {
+
             labels: pumpingLabels,
 
             datasets: [
+
                 {
                     label: 'Pecho izquierdo',
 
@@ -132,18 +166,25 @@
                             : null
                     ),
                 },
+
             ]
         },
 
         options: {
+
             responsive: true,
 
             plugins: {
+
                 tooltip: {
+
                     callbacks: {
+
                         label: function(context) {
 
-                            const item = pumpingData[context.dataIndex];
+                            const item = pumpingData[
+                                context.dataIndex
+                            ];
 
                             return `${item.amount_ml} ml - ${pumpingSideLabels[item.side]}`;
                         }
@@ -152,10 +193,14 @@
             }
         }
     });
+
 </script>
 
 <script>
-    const feedingCtx = document.getElementById('feedingChart');
+
+    const feedingCtx = document.getElementById(
+        'feedingChart'
+    );
 
     const feedingLabelMap = {
         left: 1,
@@ -165,49 +210,69 @@
     };
 
     new Chart(feedingCtx, {
+
         type: 'scatter',
 
         data: {
+
             datasets: [{
+
                 label: 'Tipo de toma',
 
-                data: feedingData.map((item, index) => ({
-                    x: index,
-                    y: feedingLabelMap[item.label],
-                    time: item.time,
-                })),
+                data: feedingData.map(
+                    (item, index) => ({
+                        x: index,
+                        y: feedingLabelMap[item.label],
+                        time: item.time,
+                    })
+                ),
 
                 pointRadius: 6,
                 pointHoverRadius: 8,
+
                 showLine: false,
+
             }]
         },
 
         options: {
+
             responsive: true,
 
             scales: {
+
                 x: {
+
                     ticks: {
+
                         callback: function(value) {
+
                             const item = feedingData[value];
-                            return item ? item.time : "";
+
+                            return item
+                                ? item.time
+                                : "";
                         }
                     }
                 },
 
                 y: {
+
                     min: 0.5,
                     max: 4.5,
 
                     afterBuildTicks: function(axis) {
-                        axis.ticks = [1, 2, 3, 4].map(value => ({ value }));
+
+                        axis.ticks = [1, 2, 3, 4]
+                            .map(value => ({ value }));
                     },
 
                     ticks: {
+
                         callback: function(value) {
 
                             const labels = {
+
                                 1: 'Pecho izquierdo',
                                 2: 'Pecho derecho',
                                 3: 'Ambos pechos',
@@ -221,13 +286,19 @@
             },
 
             plugins: {
+
                 tooltip: {
+
                     callbacks: {
+
                         label: function(context) {
 
-                            const item = feedingData[context.raw.x];
+                            const item = feedingData[
+                                context.raw.x
+                            ];
 
                             const labels = {
+
                                 left: 'Pecho izquierdo',
                                 right: 'Pecho derecho',
                                 both: 'Ambos pechos',
@@ -241,6 +312,7 @@
             }
         }
     });
+
 </script>
 
 </body>

@@ -2,40 +2,71 @@
 <html lang="es">
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
     <title>Nueva extracción</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
 </head>
 
 <body>
-    <div class="container"></div>
-        <div class="card">
-            <h1>Registrar extracción</h1>
 
-            <form method="POST">
+<div class="container">
 
-                <label>ML extraídos:</label>
-                <input type="number" name="amount_ml" required>
+    <div class="card">
 
-                <br><br>
+        <h1>
+            Registrar extracción
+        </h1>
 
-                <label>Lado:</label>
-                <select name="side">
-                    <option value="left">Izquierdo</option>
-                    <option value="right">Derecho</option>
-                    <option value="both">Ambos</option>
-                </select>
+        <form method="POST">
 
-                <br><br>
+            <label>ML extraídos:</label>
 
-                <button type="submit">
-                    Guardar
-                </button>
+            <input
+                type="number"
+                name="amount_ml"
+                min="0"
+                required
+            >
 
-            </form>
-        </div>
+            <label>Lado:</label>
+
+            <select name="side">
+                <option value="left">Izquierdo</option>
+                <option value="right">Derecho</option>
+                <option value="both">Ambos</option>
+            </select>
+
+            <button type="submit">
+                <i class="fa-solid fa-check"></i>
+                Guardar
+            </button>
+
+        </form>
+
+        <a class="button" href="/">
+            <i class="fa-solid fa-arrow-left"></i>
+            Volver
+        </a>
+
     </div>
+
+</div>
+
 </body>
 
 </html>
