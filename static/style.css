@@ -212,11 +212,47 @@ canvas {
 }
 
 @media (max-width: 768px) {
+
+    body {
+        padding: 12px;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
     .history-grid {
         grid-template-columns: 1fr;
+        gap: 14px;
     }
 
     .range-buttons {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .history-item {
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+
+    .history-item p {
+        font-size: 14px;
+        margin: 4px 0;
+    }
+
+    .history-item form {
+        margin-top: 10px;
+    }
+
+    .danger {
+        width: 100%;
+    }
+
+    h1 {
+        font-size: 28px;
+    }
+
+    h2 {
+        font-size: 20px;
     }
 }
