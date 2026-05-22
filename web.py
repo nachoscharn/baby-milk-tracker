@@ -48,26 +48,40 @@ def index():
 
 @app.route("/history")
 def history():
-    feedings = get_all_feedings()
-    pumpings = get_all_pumpings()
+    range_name = request.args.get("range", "week")
+
+    if range_name == "all":
+        feedings = get_all_feedings()
+        pumpings = get_all_pumpings()
+    else:
+        start_datetime = get_start_datetime(range_name)
+
+        feedings = get_feedings_since(start_datetime)
+        pumpings = get_pumpings_since(start_datetime)
 
     return render_template(
         "history.html",
         feedings=feedings,
         pumpings=pumpings,
+        selected_range=range_name,
     )
-
 
 @app.route("/feeding/<int:feeding_id>/delete", methods=["POST"])
 def delete_feeding_route(feeding_id: int):
+    range_name = request.args.get("range", "week")
+
     delete_feeding(feeding_id)
-    return redirect("/history")
+
+    return redirect(f"/history?range={range_name}")
 
 
 @app.route("/pumping/<int:pumping_id>/delete", methods=["POST"])
 def delete_pumping_route(pumping_id: int):
+    range_name = request.args.get("range", "week")
+
     delete_pumping(pumping_id)
-    return redirect("/history")
+
+    return redirect(f"/history?range={range_name}")
 
 @app.route("/pumping/new", methods=["GET", "POST"])
 def new_pumping():

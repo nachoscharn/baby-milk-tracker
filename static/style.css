@@ -185,3 +185,38 @@ canvas {
         font-size: 28px;
     }
 }
+
+.history-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.range-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.button.active {
+    background: #7a5230;
+    color: white;
+}
+
+.history-item {
+    background: #fffaf4;
+    border: 1px solid #eadccc;
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 14px;
+}
+
+@media (max-width: 768px) {
+    .history-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .range-buttons {
+        grid-template-columns: 1fr 1fr;
+    }
+}
