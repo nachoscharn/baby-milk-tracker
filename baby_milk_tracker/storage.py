@@ -9,6 +9,7 @@ RANGE_DAYS = {
     "day": 1,
     "week": 7,
     "month": 30,
+    "all": None
 }
 
 
