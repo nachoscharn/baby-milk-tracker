@@ -211,6 +211,10 @@ canvas {
     margin-bottom: 14px;
 }
 
+.history-item p {
+    margin: 6px 0;
+}
+
 @media (max-width: 768px) {
 
     body {
