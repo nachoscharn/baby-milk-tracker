@@ -6,7 +6,7 @@ from flask import Flask, redirect, render_template, request, session, url_for
 
 from baby_milk_tracker.auth import check_login
 from baby_milk_tracker.database import init_db
-from baby_milk_tracker.models import Feeding, GrowthRecord, Pumping
+from baby_milk_tracker.models import BabyProfile, Feeding, GrowthRecord, Pumping
 from baby_milk_tracker.storage import (
     delete_all_records,
     delete_feeding,
@@ -14,12 +14,15 @@ from baby_milk_tracker.storage import (
     delete_pumping,
     get_all_feedings,
     get_all_pumpings,
+    get_baby_profile,
     get_feedings_since,
     get_growth_records,
     get_last_feeding,
+    get_last_growth_record,
     get_last_pumping,
     get_pumpings_since,
     get_start_datetime,
+    save_baby_profile,
     save_feeding,
     save_growth_record,
     save_pumping,
@@ -59,10 +62,21 @@ def index():
     last_feeding = get_last_feeding()
     last_pumping = get_last_pumping()
 
+    baby_profile = get_baby_profile()
+    last_growth_record = get_last_growth_record()
+
+    baby_age_days = None
+
+    if baby_profile:
+        baby_age_days = (now_argentina().date() - baby_profile.birth_date.date()).days
+
     return render_template(
         "index.html",
         last_feeding=last_feeding,
         last_pumping=last_pumping,
+        baby_profile=baby_profile,
+        last_growth_record=last_growth_record,
+        baby_age_days=baby_age_days,
     )
 
 
@@ -280,6 +294,31 @@ def new_growth():
 def delete_growth_record_route(growth_record_id: int):
     delete_growth_record(growth_record_id)
     return redirect(url_for("growth"))
+
+
+@app.route("/baby-profile", methods=["GET", "POST"])
+@login_required
+def baby_profile():
+    profile = get_baby_profile()
+
+    if request.method == "POST":
+        sex = request.form["sex"]
+
+        profile = BabyProfile(
+            first_name=request.form["first_name"],
+            last_name=request.form["last_name"],
+            birth_date=datetime.fromisoformat(request.form["birth_date"]),
+            sex=sex,
+        )
+
+        save_baby_profile(profile)
+
+        return redirect(url_for("index"))
+
+    return render_template(
+        "baby_profile.html",
+        profile=profile,
+    )
 
 
 if __name__ == "__main__":

@@ -57,6 +57,17 @@ def init_db() -> None:
             """
         )
 
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS baby_profile (
+                id SERIAL PRIMARY KEY,
+                first_name TEXT NOT NULL,
+                last_name TEXT NOT NULL,
+                birth_date TEXT NOT NULL,
+                sex TEXT NOT NULL
+            )
+            """
+        )
         conn.commit()
 
 

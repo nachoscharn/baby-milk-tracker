@@ -50,13 +50,51 @@
                 Registro de lactancia y extracción
             </p>
 
+            {% if baby_profile %}
+
+                <div class="baby-summary">
+
+                    <h2>
+                        {{ baby_profile.first_name }} 
+                        {{ baby_profile.last_name }}
+                    </h2>
+
+                    {% if baby_age_days is not none %}
+                        <p>
+                            {{ baby_age_days }} días
+                        </p>
+                    {% endif %}
+
+                    {% if last_growth_record %}
+                        <p>
+                            <strong>Último peso:</strong>
+                            {{ last_growth_record.weight_kg }} kg
+                        </p>
+
+                        <p>
+                            <strong>Último largo:</strong>
+                            {{ last_growth_record.length_cm }} cm
+                        </p>
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
             <div class="home-actions">
+                <a
+                    class="button"
+                    href="{{ url_for('baby_profile') }}"
+                >
+                    <i class="fa-solid fa-baby"></i>
+                    Perfil bebé
+                </a>
 
                 <a
                     class="button"
                     href="/feeding/new"
                 >
-                    <i class="fa-solid fa-baby"></i>
+                    <i class="fa-solid fa-glass-water"></i>
                     Registrar toma
                 </a>
             

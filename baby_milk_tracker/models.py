@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Literal
 
 
 @dataclass
@@ -24,3 +25,11 @@ class GrowthRecord:
     weight_kg: float
     length_cm: float
     head_circumference_cm: float | None = None
+
+
+@dataclass
+class BabyProfile:
+    first_name: str
+    last_name: str
+    birth_date: datetime
+    sex: Literal["female", "male"]

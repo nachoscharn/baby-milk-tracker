@@ -333,3 +333,20 @@ label {
 .logout-link:hover {
     text-decoration: underline;
 }
+
+.baby-summary {
+    background: #fff7ed;
+    border: 1px solid #ead7c2;
+    border-radius: 16px;
+    padding: 14px;
+    margin: 18px 0;
+}
+
+.baby-summary h2 {
+    margin: 0 0 6px 0;
+    color: #7a5230;
+}
+
+.baby-summary p {
+    margin: 4px 0;
+}

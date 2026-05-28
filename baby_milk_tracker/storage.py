@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from baby_milk_tracker.database import get_connection, get_placeholder
-from baby_milk_tracker.models import Feeding, GrowthRecord, Pumping
+from baby_milk_tracker.models import BabyProfile, Feeding, GrowthRecord, Pumping
 from baby_milk_tracker.time_utils import now_argentina
 
 RANGE_DAYS = {"day": 1, "week": 7, "month": 30, "all": None}
@@ -356,3 +356,93 @@ def delete_growth_record(growth_record_id: int) -> None:
         )
 
         conn.commit()
+
+
+def get_baby_profile() -> BabyProfile | None:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT first_name, last_name, birth_date, sex
+            FROM baby_profile
+            ORDER BY id DESC
+            LIMIT 1
+            """
+        )
+
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return BabyProfile(
+        first_name=row[0],
+        last_name=row[1],
+        birth_date=datetime.fromisoformat(row[2]),
+        sex=row[3],
+    )
+
+
+def save_baby_profile(profile: BabyProfile) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("DELETE FROM baby_profile")
+
+        cursor.execute(
+            f"""
+            INSERT INTO baby_profile (
+                first_name,
+                last_name,
+                birth_date,
+                sex
+            )
+            VALUES (
+                {placeholder},
+                {placeholder},
+                {placeholder},
+                {placeholder}
+            )
+            """,
+            (
+                profile.first_name,
+                profile.last_name,
+                profile.birth_date.date().isoformat(),
+                profile.sex,
+            ),
+        )
+
+        conn.commit()
+
+
+def get_last_growth_record() -> GrowthRecord | None:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT
+                created_at,
+                weight_kg,
+                length_cm,
+                head_circumference_cm
+            FROM growth_records
+            ORDER BY created_at DESC
+            LIMIT 1
+            """
+        )
+
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return GrowthRecord(
+        created_at=datetime.fromisoformat(row[0]),
+        weight_kg=row[1],
+        length_cm=row[2],
+        head_circumference_cm=row[3],
+    )
