@@ -350,3 +350,19 @@ label {
 .baby-summary p {
     margin: 4px 0;
 }
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.user-actions {
+    text-align: right;
+}
+
+.logged-user {
+    margin: 0 0 6px 0;
+    font-size: 14px;
+}

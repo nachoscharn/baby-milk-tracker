@@ -28,27 +28,32 @@
 
     <body>
 
-    <div class="container">
-
-        <div class="card">
-
-            <div class="header-row">
-                <div>
-                    <h1>Baby Milk Tracker</h1>
-            
-                    <p class="logged-user">
-                        Usuario: <strong>{{ session["username"] }}</strong>
-                    </p>
+        <div class="container">
+        
+            <div class="card">
+        
+                <div class="header-row">
+        
+                    <h1>
+                        Baby Milk Tracker
+                    </h1>
+        
+                    <div class="user-actions">
+        
+                        <p class="logged-user">
+                            {{ session["username"] }}
+                        </p>
+        
+                        <a
+                            href="{{ url_for('logout') }}"
+                            class="logout-link"
+                        >
+                            Cerrar sesión
+                        </a>
+        
+                    </div>
+        
                 </div>
-            
-                <a href="{{ url_for('logout') }}" class="logout-link">
-                    Cerrar sesión
-                </a>
-            </div>
-
-            <p>
-                Registro de lactancia y extracción
-            </p>
 
             {% if baby_profile %}
 
@@ -106,13 +111,7 @@
                     Registrar extracción
                 </a>
             
-                <a
-                    class="button"
-                    href="/charts"
-                >
-                    <i class="fa-solid fa-chart-line"></i>
-                    Ver gráficos
-                </a>
+
     
                 <a
                     class="button"
@@ -129,6 +128,13 @@
                     <i class="fa-solid fa-clock-rotate-left"></i>
                     Ver historial
                 </a>
+                <a
+                class="button"
+                href="/charts"
+            >
+                <i class="fa-solid fa-chart-line"></i>
+                Ver gráficos
+            </a>
             
             </div>
 
