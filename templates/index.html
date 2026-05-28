@@ -28,7 +28,19 @@
 
         <div class="card">
 
-            <h1>Baby Milk Tracker</h1>
+            <div class="header-row">
+                <div>
+                    <h1>Baby Milk Tracker</h1>
+            
+                    <p class="logged-user">
+                        Usuario: <strong>{{ session["username"] }}</strong>
+                    </p>
+                </div>
+            
+                <a href="{{ url_for('logout') }}" class="logout-link">
+                    Cerrar sesión
+                </a>
+            </div>
 
             <p>
                 Registro de lactancia y extracción

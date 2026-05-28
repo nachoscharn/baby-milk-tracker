@@ -1,9 +1,11 @@
+import os
 from datetime import datetime
+from functools import wraps
 
+from flask import Flask, render_template, request, redirect, url_for, session
+
+from baby_milk_tracker.auth import check_login
 from baby_milk_tracker.time_utils import now_argentina, ARGENTINA_TIMEZONE
-
-from flask import Flask, render_template, request, redirect
-
 from baby_milk_tracker.database import init_db
 from baby_milk_tracker.models import Feeding, Pumping
 from baby_milk_tracker.storage import (
@@ -23,7 +25,22 @@ from baby_milk_tracker.storage import (
 )
 
 app = Flask(__name__)
+
+app.secret_key = os.environ.get(
+    "SECRET_KEY",
+    "baby-milk-tracker-local-secret"
+)
+
 init_db()
+
+def login_required(view):
+    @wraps(view)
+    def wrapped_view(**kwargs):
+        if "username" not in session:
+            return redirect(url_for("login"))
+        
+        return view(**kwargs)
+    return wrapped_view
 
 def get_created_at_from_form():
     created_at = request.form.get("created_at")
@@ -36,6 +53,7 @@ def get_created_at_from_form():
     )
 
 @app.route("/")
+@login_required
 def index():
     last_feeding = get_last_feeding()
     last_pumping = get_last_pumping()
@@ -46,7 +64,32 @@ def index():
         last_pumping=last_pumping,
     )
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if "username" in session:
+        return redirect(url_for("index"))
+        
+    error = None
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip().lower()
+        password = request.form.get("password", "")
+
+        if check_login(username, password):
+            session["username"] = username
+            return redirect(url_for("index"))
+        
+        error = "Usuario o contraseña incorrecta."
+
+    return render_template("login.html", error=error)
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("login"))
+
 @app.route("/history")
+@login_required
 def history():
     range_name = request.args.get("range", "week")
 
@@ -67,6 +110,7 @@ def history():
     )
 
 @app.route("/feeding/<int:feeding_id>/delete", methods=["POST"])
+@login_required
 def delete_feeding_route(feeding_id: int):
     range_name = request.args.get("range", "week")
 
@@ -76,6 +120,7 @@ def delete_feeding_route(feeding_id: int):
 
 
 @app.route("/pumping/<int:pumping_id>/delete", methods=["POST"])
+@login_required
 def delete_pumping_route(pumping_id: int):
     range_name = request.args.get("range", "week")
 
@@ -84,6 +129,7 @@ def delete_pumping_route(pumping_id: int):
     return redirect(f"/history?range={range_name}")
 
 @app.route("/pumping/new", methods=["GET", "POST"])
+@login_required
 def new_pumping():
     if request.method == "POST":
         amount_ml = int(request.form["amount_ml"])
@@ -102,6 +148,7 @@ def new_pumping():
     return render_template("pumping_form.html")
 
 @app.route("/feeding/new", methods=["GET", "POST"])
+@login_required
 def new_feeding():
     if request.method == "POST":
         feeding_type = request.form["feeding_type"]
@@ -136,10 +183,13 @@ def new_feeding():
     return render_template("feeding_form.html")
 
 @app.route("/records/delete-all", methods=["POST"])
+@login_required
 def delete_records():
     delete_all_records()
     return redirect("/")
+
 @app.route("/charts")
+@login_required
 def charts():
     range_name = request.args.get("range", "day")
 
