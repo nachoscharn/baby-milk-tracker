@@ -2,45 +2,44 @@ import os
 from datetime import datetime
 from functools import wraps
 
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, redirect, render_template, request, session, url_for
 
 from baby_milk_tracker.auth import check_login
-from baby_milk_tracker.time_utils import now_argentina, ARGENTINA_TIMEZONE
 from baby_milk_tracker.database import init_db
 from baby_milk_tracker.models import Feeding, Pumping
 from baby_milk_tracker.storage import (
-    get_last_feeding,
-    get_last_pumping,
-    save_feeding,
-    save_pumping,
     delete_all_records,
-    get_feedings_since,
-    get_pumpings_since,
-    get_start_datetime,
-    get_all_feedings,
-    get_all_pumpings,
     delete_feeding,
     delete_pumping,
-
+    get_all_feedings,
+    get_all_pumpings,
+    get_feedings_since,
+    get_last_feeding,
+    get_last_pumping,
+    get_pumpings_since,
+    get_start_datetime,
+    save_feeding,
+    save_pumping,
 )
+from baby_milk_tracker.time_utils import ARGENTINA_TIMEZONE, now_argentina
 
 app = Flask(__name__)
 
-app.secret_key = os.environ.get(
-    "SECRET_KEY",
-    "baby-milk-tracker-local-secret"
-)
+app.secret_key = os.environ.get("SECRET_KEY", "baby-milk-tracker-local-secret")
 
 init_db()
+
 
 def login_required(view):
     @wraps(view)
     def wrapped_view(**kwargs):
         if "username" not in session:
             return redirect(url_for("login"))
-        
+
         return view(**kwargs)
+
     return wrapped_view
+
 
 def get_created_at_from_form():
     created_at = request.form.get("created_at")
@@ -48,9 +47,8 @@ def get_created_at_from_form():
     if not created_at:
         return now_argentina()
 
-    return datetime.fromisoformat(created_at).replace(
-        tzinfo=ARGENTINA_TIMEZONE
-    )
+    return datetime.fromisoformat(created_at).replace(tzinfo=ARGENTINA_TIMEZONE)
+
 
 @app.route("/")
 @login_required
@@ -64,11 +62,12 @@ def index():
         last_pumping=last_pumping,
     )
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if "username" in session:
         return redirect(url_for("index"))
-        
+
     error = None
 
     if request.method == "POST":
@@ -78,15 +77,17 @@ def login():
         if check_login(username, password):
             session["username"] = username
             return redirect(url_for("index"))
-        
+
         error = "Usuario o contraseña incorrecta."
 
     return render_template("login.html", error=error)
+
 
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
+
 
 @app.route("/history")
 @login_required
@@ -109,6 +110,7 @@ def history():
         selected_range=range_name,
     )
 
+
 @app.route("/feeding/<int:feeding_id>/delete", methods=["POST"])
 @login_required
 def delete_feeding_route(feeding_id: int):
@@ -128,6 +130,7 @@ def delete_pumping_route(pumping_id: int):
 
     return redirect(f"/history?range={range_name}")
 
+
 @app.route("/pumping/new", methods=["GET", "POST"])
 @login_required
 def new_pumping():
@@ -146,6 +149,7 @@ def new_pumping():
         return redirect("/")
 
     return render_template("pumping_form.html")
+
 
 @app.route("/feeding/new", methods=["GET", "POST"])
 @login_required
@@ -182,11 +186,13 @@ def new_feeding():
 
     return render_template("feeding_form.html")
 
+
 @app.route("/records/delete-all", methods=["POST"])
 @login_required
 def delete_records():
     delete_all_records()
     return redirect("/")
+
 
 @app.route("/charts")
 @login_required
@@ -206,7 +212,7 @@ def charts():
         }
         for pumping in pumpings
     ]
-    
+
     feeding_chart_data = []
 
     for feeding in feedings:
@@ -223,7 +229,7 @@ def charts():
                 "amount_ml": feeding.amount_ml,
                 "duration_min": feeding.duration_min,
             }
-    )
+        )
 
     return render_template(
         "charts.html",
@@ -232,7 +238,7 @@ def charts():
         feeding_chart_data=feeding_chart_data,
     )
 
+
 if __name__ == "__main__":
     init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
-
