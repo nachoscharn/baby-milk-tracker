@@ -45,6 +45,18 @@ def init_db() -> None:
             """
         )
 
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS growth_records (
+                id SERIAL PRIMARY KEY,
+                created_at TEXT NOT NULL,
+                weight_kg REAL NOT NULL,
+                length_cm REAL NOT NULL,
+                head_circumference_cm REAL
+            )
+            """
+        )
+
         conn.commit()
 
 

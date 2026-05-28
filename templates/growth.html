@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta name="theme-color" content="#8b5a2b">
+
+    <link
+        rel="manifest"
+        href="{{ url_for('static', filename='manifest.json') }}"
+    >
+
+    <title>Crecimiento</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>
+            <i class="fa-solid fa-ruler"></i>
+            Crecimiento
+        </h1>
+
+        <div class="home-actions">
+
+            <a
+                class="button"
+                href="{{ url_for('new_growth') }}"
+            >
+                <i class="fa-solid fa-plus"></i>
+                Registrar medición
+            </a>
+
+            <a
+                class="button secondary-button"
+                href="{{ url_for('index') }}"
+            >
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver
+            </a>
+
+        </div>
+
+        {% if not records %}
+
+            <p>
+                Todavía no hay registros de crecimiento.
+            </p>
+
+        {% else %}
+
+            {% for record in records %}
+
+                <div class="history-item">
+
+                    <p>
+                        <strong>Fecha:</strong>
+                        {{ record.created_at.strftime("%d/%m/%Y %H:%M") }}
+                    </p>
+
+                    <p>
+                        <strong>Peso:</strong>
+                        {{ record.weight_kg }} kg
+                    </p>
+
+                    <p>
+                        <strong>Largo/altura:</strong>
+                        {{ record.length_cm }} cm
+                    </p>
+
+                    {% if record.head_circumference_cm %}
+
+                        <p>
+                            <strong>Perímetro cefálico:</strong>
+                            {{ record.head_circumference_cm }} cm
+                        </p>
+
+                    {% endif %}
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

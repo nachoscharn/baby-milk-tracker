@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from baby_milk_tracker.database import get_connection, get_placeholder
-from baby_milk_tracker.models import Feeding, Pumping
+from baby_milk_tracker.models import Feeding, GrowthRecord, Pumping
 from baby_milk_tracker.time_utils import now_argentina
 
 RANGE_DAYS = {"day": 1, "week": 7, "month": 30, "all": None}
@@ -69,6 +69,67 @@ def save_pumping(pumping: Pumping) -> None:
         )
 
         conn.commit()
+
+
+def save_growth_record(growth_record: GrowthRecord) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            f"""
+            INSERT INTO growth_records (
+                created_at,
+                weight_kg,
+                length_cm,
+                head_circumference_cm
+            )
+            VALUES (
+                {placeholder},
+                {placeholder},
+                {placeholder},
+                {placeholder}
+            )
+            """,
+            (
+                growth_record.created_at.isoformat(),
+                growth_record.weight_kg,
+                growth_record.length_cm,
+                growth_record.head_circumference_cm,
+            ),
+        )
+
+        conn.commit()
+
+
+def get_growth_records() -> list[GrowthRecord]:
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
+            SELECT
+                created_at,
+                weight_kg,
+                length_cm,
+                head_circumference_cm
+            FROM growth_records
+            ORDER BY created_at DESC
+            """
+        )
+
+        rows = cursor.fetchall()
+
+    return [
+        GrowthRecord(
+            created_at=datetime.fromisoformat(row[0]),
+            weight_kg=row[1],
+            length_cm=row[2],
+            head_circumference_cm=row[3],
+        )
+        for row in rows
+    ]
 
 
 def get_last_feeding() -> Feeding | None:
@@ -275,6 +336,23 @@ def delete_pumping(pumping_id: int) -> None:
         cursor.execute(
             f"DELETE FROM pumpings WHERE id = {placeholder}",
             (pumping_id,),
+        )
+
+        conn.commit()
+
+
+def delete_growth_record(growth_record_id: int) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute(
+            f"""
+            DELETE FROM growth_records
+            WHERE id = {placeholder}
+            """,
+            (growth_record_id,),
         )
 
         conn.commit()

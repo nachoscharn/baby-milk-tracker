@@ -6,19 +6,22 @@ from flask import Flask, redirect, render_template, request, session, url_for
 
 from baby_milk_tracker.auth import check_login
 from baby_milk_tracker.database import init_db
-from baby_milk_tracker.models import Feeding, Pumping
+from baby_milk_tracker.models import Feeding, GrowthRecord, Pumping
 from baby_milk_tracker.storage import (
     delete_all_records,
     delete_feeding,
+    delete_growth_record,
     delete_pumping,
     get_all_feedings,
     get_all_pumpings,
     get_feedings_since,
+    get_growth_records,
     get_last_feeding,
     get_last_pumping,
     get_pumpings_since,
     get_start_datetime,
     save_feeding,
+    save_growth_record,
     save_pumping,
 )
 from baby_milk_tracker.time_utils import ARGENTINA_TIMEZONE, now_argentina
@@ -237,6 +240,46 @@ def charts():
         pumping_chart_data=pumping_chart_data,
         feeding_chart_data=feeding_chart_data,
     )
+
+
+@app.route("/growth")
+@login_required
+def growth():
+    records = get_growth_records()
+
+    return render_template(
+        "growth.html",
+        records=records,
+    )
+
+
+@app.route("/growth/new", methods=["GET", "POST"])
+@login_required
+def new_growth():
+    if request.method == "POST":
+        head_circumference_cm = request.form.get("head_circumference_cm")
+
+        growth_record = GrowthRecord(
+            created_at=get_created_at_from_form(),
+            weight_kg=float(request.form["weight_kg"]),
+            length_cm=float(request.form["length_cm"]),
+            head_circumference_cm=(
+                float(head_circumference_cm) if head_circumference_cm else None
+            ),
+        )
+
+        save_growth_record(growth_record)
+
+        return redirect(url_for("growth"))
+
+    return render_template("growth_form.html")
+
+
+@app.route("/growth/<int:growth_record_id>/delete", methods=["POST"])
+@login_required
+def delete_growth_record_route(growth_record_id: int):
+    delete_growth_record(growth_record_id)
+    return redirect(url_for("growth"))
 
 
 if __name__ == "__main__":
