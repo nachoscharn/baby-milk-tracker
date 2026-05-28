@@ -4,6 +4,10 @@
     <head>
         <meta charset="UTF-8">
 
+
+        <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+        <meta name="theme-color" content="#8b5a2b">
+
         <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0"
@@ -302,6 +306,11 @@
 
         setInterval(updateElapsedTimes, 1000);
 
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register(
+                "{{ url_for('static', filename='service-worker.js') }}"
+            );
+        }
     </script>
 
     </body>
