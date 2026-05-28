@@ -1,7 +1,6 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-
 ARGENTINA_TIMEZONE = ZoneInfo("America/Argentina/Buenos_Aires")
 
 

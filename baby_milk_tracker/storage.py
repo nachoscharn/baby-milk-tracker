@@ -4,13 +4,7 @@ from baby_milk_tracker.database import get_connection, get_placeholder
 from baby_milk_tracker.models import Feeding, Pumping
 from baby_milk_tracker.time_utils import now_argentina
 
-
-RANGE_DAYS = {
-    "day": 1,
-    "week": 7,
-    "month": 30,
-    "all": None
-}
+RANGE_DAYS = {"day": 1, "week": 7, "month": 30, "all": None}
 
 
 def save_feeding(feeding: Feeding) -> None:
@@ -204,6 +198,7 @@ def get_feedings_since(start_datetime: datetime) -> list[Feeding]:
         )
         for row in rows
     ]
+
 
 def get_all_feedings() -> list[dict]:
     with get_connection() as conn:

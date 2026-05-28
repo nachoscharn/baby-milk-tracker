@@ -1,7 +1,8 @@
-from baby_milk_tracker.time_utils import now_argentina
+from datetime import datetime
 
 from baby_milk_tracker.models import Feeding, Pumping
 from baby_milk_tracker.storage import save_feeding, save_pumping
+from baby_milk_tracker.time_utils import now_argentina
 
 
 def run_menu():
@@ -43,6 +44,7 @@ def run_menu():
         else:
             print(f"Su opción ({option}) es inválida, por favor elija nuevamente")
 
+
 def confirm_save() -> bool:
     while True:
         option = input("\n¿Está bien la información cargada? ¿Desea guardar? (s/n): ")
@@ -55,15 +57,13 @@ def confirm_save() -> bool:
 
         print(f"Opción inválida: {option}")
 
+
 def register_feeding() -> Feeding:
     created_at = now_argentina()
 
     while True:
         feeding_type = input(
-            "\n¿Cómo se alimentó?\n"
-            "1) Pecho\n"
-            "2) Mamadera\n"
-            "Opción: "
+            "\n¿Cómo se alimentó?\n" "1) Pecho\n" "2) Mamadera\n" "Opción: "
         )
 
         if feeding_type in ["1", "2"]:
@@ -80,10 +80,7 @@ def register_feeding() -> Feeding:
 def register_breast_feeding(created_at: datetime) -> Feeding:
     while True:
         side = input(
-            "\n¿Qué pecho se usó?\n"
-            "1) Izquierdo\n"
-            "2) Derecho\n"
-            "Opción: "
+            "\n¿Qué pecho se usó?\n" "1) Izquierdo\n" "2) Derecho\n" "Opción: "
         )
 
         if side == "1":
@@ -164,6 +161,7 @@ def register_pumping() -> Pumping:
         amount_ml=amount_ml,
         side=side_name,
     )
+
 
 def print_pumping(pumping: Pumping) -> None:
     side_map = {

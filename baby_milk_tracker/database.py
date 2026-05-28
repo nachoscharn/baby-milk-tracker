@@ -4,7 +4,6 @@ from pathlib import Path
 
 import psycopg
 
-
 DB_PATH = Path("data/baby_milk_tracker.db")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -47,6 +46,7 @@ def init_db() -> None:
         )
 
         conn.commit()
+
 
 def get_placeholder() -> str:
     if DATABASE_URL:
