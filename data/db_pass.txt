@@ -1,3 +1,0 @@
-
-name: baby-milk-tracker
-password: C3SPpEmV1HEF0Dy1
