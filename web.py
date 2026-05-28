@@ -27,7 +27,11 @@ from baby_milk_tracker.storage import (
     save_growth_record,
     save_pumping,
 )
-from baby_milk_tracker.time_utils import ARGENTINA_TIMEZONE, now_argentina
+from baby_milk_tracker.time_utils import (
+    ARGENTINA_TIMEZONE,
+    from_baby_age,
+    now_argentina,
+)
 
 app = Flask(__name__)
 
@@ -69,6 +73,7 @@ def index():
 
     if baby_profile:
         baby_age_days = (now_argentina().date() - baby_profile.birth_date.date()).days
+        formatted_baby_age = from_baby_age(baby_age_days)
 
     return render_template(
         "index.html",
@@ -77,6 +82,7 @@ def index():
         baby_profile=baby_profile,
         last_growth_record=last_growth_record,
         baby_age_days=baby_age_days,
+        formatted_baby_age=formatted_baby_age,
     )
 
 
