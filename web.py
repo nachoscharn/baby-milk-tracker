@@ -21,7 +21,6 @@ from baby_milk_tracker.percentiles import (
     is_percentile_supported,
 )
 from baby_milk_tracker.storage import (
-    delete_all_records,
     delete_appointment,
     delete_feeding,
     delete_growth_record,
@@ -286,55 +285,6 @@ def new_feeding():
         return redirect("/")
 
     return render_template("feeding_form.html")
-
-
-@app.route("/records/delete-all", methods=["POST"])
-@login_required
-def delete_records():
-    baby_id = current_baby_id()
-    if baby_id:
-        delete_all_records(baby_id)
-    return redirect("/")
-
-
-@app.route("/charts")
-@login_required
-def charts():
-    baby_id = current_baby_id()
-    range_name = request.args.get("range", "day")
-    start_datetime = get_start_datetime(range_name)
-
-    pumpings = get_pumpings_since(start_datetime, baby_id) if baby_id else []
-    feedings = get_feedings_since(start_datetime, baby_id) if baby_id else []
-
-    pumping_chart_data = [
-        {
-            "time": pumping.created_at.strftime("%d/%m %H:%M"),
-            "amount_ml": pumping.amount_ml,
-            "side": pumping.side,
-        }
-        for pumping in pumpings
-    ]
-
-    feeding_chart_data = []
-    for feeding in feedings:
-        label = feeding.side if feeding.feeding_type == "breast" else "bottle"
-        feeding_chart_data.append(
-            {
-                "time": feeding.created_at.strftime("%d/%m %H:%M"),
-                "type": feeding.feeding_type,
-                "label": label,
-                "amount_ml": feeding.amount_ml,
-                "duration_min": feeding.duration_min,
-            }
-        )
-
-    return render_template(
-        "charts.html",
-        range_name=range_name,
-        pumping_chart_data=pumping_chart_data,
-        feeding_chart_data=feeding_chart_data,
-    )
 
 
 @app.route("/growth")

@@ -58,10 +58,6 @@
                                 <i class="fa-solid fa-file-medical"></i>
                                 Estudios realizados
                             </a>
-                            <a class="menu-item" href="/charts">
-                                <i class="fa-solid fa-chart-line"></i>
-                                Ver gráficos
-                            </a>
                             <div class="menu-divider"></div>
                             <a class="menu-item" href="{{ url_for('settings') }}">
                                 <i class="fa-solid fa-sliders"></i>
@@ -376,30 +372,6 @@
 
         </div>
 
-        <div class="card">
-
-            <h2>
-                <i class="fa-solid fa-gear"></i>
-                Administración
-            </h2>
-
-            <form
-                method="POST"
-                action="/records/delete-all"
-            >
-
-                <button
-                    class="danger"
-                    type="submit"
-                    onclick="return confirm('¿Seguro que querés borrar todo el historial? Esta acción no se puede deshacer.')"
-                >
-                    <i class="fa-solid fa-trash"></i>
-                    Borrar historial
-                </button>
-
-            </form>
-
-        </div>
 
     </div>
 
