@@ -197,22 +197,28 @@ def logout():
 def history():
     baby_id = current_baby_id()
     range_name = request.args.get("range", "week")
+    user_settings = get_user_settings(session["user_id"])
 
     if baby_id is None:
         feedings, pumpings = [], []
     elif range_name == "all":
         feedings = get_all_feedings(baby_id)
-        pumpings = get_all_pumpings(baby_id)
+        pumpings = get_all_pumpings(baby_id) if user_settings["show_pumpings"] else []
     else:
         start_datetime = get_start_datetime(range_name)
         feedings = get_feedings_since(start_datetime, baby_id)
-        pumpings = get_pumpings_since(start_datetime, baby_id)
+        pumpings = (
+            get_pumpings_since(start_datetime, baby_id)
+            if user_settings["show_pumpings"]
+            else []
+        )
 
     return render_template(
         "history.html",
         feedings=feedings,
         pumpings=pumpings,
         selected_range=range_name,
+        settings=user_settings,
     )
 
 

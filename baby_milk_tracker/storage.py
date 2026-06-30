@@ -181,7 +181,7 @@ def get_feedings_since(start_datetime: datetime, baby_id: int) -> list[Feeding]:
             SELECT created_at, feeding_type, side, duration_min, amount_ml
             FROM feedings
             WHERE created_at >= {placeholder} AND baby_id = {placeholder}
-            ORDER BY created_at
+            ORDER BY created_at DESC
             """,
             (start_datetime.isoformat(), baby_id),
         )
@@ -302,7 +302,7 @@ def get_pumpings_since(start_datetime: datetime, baby_id: int) -> list[Pumping]:
             SELECT created_at, amount_ml, side
             FROM pumpings
             WHERE created_at >= {placeholder} AND baby_id = {placeholder}
-            ORDER BY created_at
+            ORDER BY created_at DESC
             """,
             (start_datetime.isoformat(), baby_id),
         )

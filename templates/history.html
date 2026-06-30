@@ -78,7 +78,7 @@
         </div>
     </div>
 
-    <div class="history-grid">
+    <div class="{% if settings.show_pumpings %}history-grid{% endif %}">
 
         <div class="card">
             <h2>
@@ -151,6 +151,7 @@
             {% endif %}
         </div>
 
+        {% if settings.show_pumpings %}
         <div class="card">
             <h2>
                 <i class="fa-solid fa-droplet"></i>
@@ -205,6 +206,7 @@
 
             {% endif %}
         </div>
+        {% endif %}
 
     </div>
 
