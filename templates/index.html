@@ -33,26 +33,35 @@
             <div class="card">
         
                 <div class="header-row">
-        
-                    <h1>
-                        Baby Milk Tracker
-                    </h1>
-        
-                    <div class="user-actions">
-        
-                        <p class="logged-user">
-                            {{ session["username"] }}
-                        </p>
-        
-                        <a
-                            href="{{ url_for('logout') }}"
-                            class="logout-link"
-                        >
-                            Cerrar sesión
-                        </a>
-        
+
+                    <h1>Baby Milk Tracker</h1>
+
+                    <div class="hamburger-menu">
+                        <button class="hamburger-btn" id="menuBtn" aria-label="Menú">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                        <div class="menu-dropdown" id="menuDropdown">
+                            <span class="menu-username">{{ session["username"] }}</span>
+                            <a class="menu-item" href="{{ url_for('baby_profile') }}">
+                                <i class="fa-solid fa-baby"></i>
+                                {% if baby_profile %}Editar perfil bebé{% else %}Crear perfil bebé{% endif %}
+                            </a>
+                            <a class="menu-item" href="{{ url_for('growth') }}">
+                                <i class="fa-solid fa-ruler"></i>
+                                Crecimiento
+                            </a>
+                            <a class="menu-item" href="/charts">
+                                <i class="fa-solid fa-chart-line"></i>
+                                Ver gráficos
+                            </a>
+                            <div class="menu-divider"></div>
+                            <a class="menu-item menu-item-danger" href="{{ url_for('logout') }}">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                Cerrar sesión
+                            </a>
+                        </div>
                     </div>
-        
+
                 </div>
 
                 {% if baby_profile %}
@@ -138,60 +147,22 @@
             {% endif %}
 
             <div class="home-actions">
-                <a
-                    class="button"
-                    href="{{ url_for('baby_profile') }}"
-                >
-                    <i class="fa-solid fa-baby"></i>
 
-                    {% if baby_profile %}
-                        Editar perfil bebé
-                    {% else %}
-                        Crear perfil bebé
-                    {% endif %}
-                </a>
-
-                <a
-                    class="button"
-                    href="/feeding/new"
-                >
+                <a class="button" href="/feeding/new">
                     <i class="fa-solid fa-glass-water"></i>
                     Registrar toma
                 </a>
-            
-                <a
-                    class="button"
-                    href="/pumping/new"
-                >
+
+                <a class="button" href="/pumping/new">
                     <i class="fa-solid fa-droplet"></i>
                     Registrar extracción
                 </a>
-            
 
-    
-                <a
-                    class="button"
-                    href="{{ url_for('growth') }}"
-                >
-                    <i class="fa-solid fa-ruler"></i>
-                    Crecimiento
-                </a>
-            
-                <a
-                    class="button"
-                    href="/history"
-                >
+                <a class="button" href="/history">
                     <i class="fa-solid fa-clock-rotate-left"></i>
-                    Ver historial
+                    Historial de tomas
                 </a>
-                <a
-                class="button"
-                href="/charts"
-            >
-                <i class="fa-solid fa-chart-line"></i>
-                Ver gráficos
-            </a>
-            
+
             </div>
 
         </div>
@@ -419,6 +390,18 @@
                 "{{ url_for('static', filename='service-worker.js') }}"
             );
         }
+
+        const menuBtn = document.getElementById("menuBtn");
+        const menuDropdown = document.getElementById("menuDropdown");
+
+        menuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menuDropdown.classList.toggle("open");
+        });
+
+        document.addEventListener("click", () => {
+            menuDropdown.classList.remove("open");
+        });
     </script>
 
     </body>
