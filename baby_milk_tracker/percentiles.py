@@ -332,3 +332,27 @@ def get_weight_median_curve(sex: str, max_weeks: int) -> list[dict]:
         if ref:
             points.append({"x": week, "y": ref[PERCENTILES.index(50)]})
     return points
+
+
+def _build_curves(
+    weekly_table: dict,
+    monthly_table: dict,
+    max_weeks: int,
+) -> dict[int, list[dict]]:
+    curves: dict[int, list[dict]] = {p: [] for p in PERCENTILES}
+    for week in range(min(max_weeks, int(MAX_AGE_DAYS / 7)) + 1):
+        ref = _interpolate_reference_values(weekly_table, monthly_table, week * 7)
+        if ref:
+            for i, p in enumerate(PERCENTILES):
+                curves[p].append({"x": week, "y": round(ref[i], 2)})
+    return curves
+
+
+def get_weight_percentile_curves(sex: str, max_weeks: int) -> dict[int, list[dict]]:
+    weekly, monthly = WEIGHT_TABLES.get(sex, WEIGHT_TABLES["female"])
+    return _build_curves(weekly, monthly, max_weeks)
+
+
+def get_length_percentile_curves(sex: str, max_weeks: int) -> dict[int, list[dict]]:
+    weekly, monthly = LENGTH_TABLES.get(sex, LENGTH_TABLES["female"])
+    return _build_curves(weekly, monthly, max_weeks)

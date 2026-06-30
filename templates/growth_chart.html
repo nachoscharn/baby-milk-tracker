@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8b5a2b">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <title>Gráfico de crecimiento</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+        <h1>
+            <i class="fa-solid fa-chart-line"></i>
+            Gráfico de crecimiento
+        </h1>
+
+        <div class="home-actions">
+            <a class="button secondary-button" href="{{ url_for('growth') }}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver
+            </a>
+        </div>
+
+        {% if baby_profile %}
+            <p class="baby-age">
+                {{ baby_profile.first_name }} — curvas OMS ({{ baby_profile.sex | replace('female','niña') | replace('male','niño') }})
+            </p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>
+            <i class="fa-solid fa-weight-scale"></i>
+            Peso (kg)
+        </h2>
+        <canvas id="weightChart"></canvas>
+    </div>
+
+    <div class="card">
+        <h2>
+            <i class="fa-solid fa-ruler-vertical"></i>
+            Largo / altura (cm)
+        </h2>
+        <canvas id="lengthChart"></canvas>
+    </div>
+
+</div>
+
+<script>
+    const percentileColors = {
+        3:  { border: "rgba(180,180,210,0.7)", bg: "rgba(180,180,210,0.07)" },
+        15: { border: "rgba(120,160,220,0.7)", bg: "rgba(120,160,220,0.07)" },
+        50: { border: "rgba(80,140,80,0.85)",  bg: "rgba(80,140,80,0.07)"  },
+        85: { border: "rgba(120,160,220,0.7)", bg: "rgba(120,160,220,0.07)" },
+        97: { border: "rgba(180,180,210,0.7)", bg: "rgba(180,180,210,0.07)" },
+    };
+
+    const percentiles = {{ percentiles | tojson }};
+    const weightCurves = {{ weight_curves | tojson }};
+    const lengthCurves = {{ length_curves | tojson }};
+    const babyWeightData = {{ baby_weight_data | tojson }};
+    const babyLengthData = {{ baby_length_data | tojson }};
+
+    function buildDatasets(curves, babyData) {
+        const datasets = percentiles.map(p => ({
+            label: `P${p}`,
+            data: curves[p],
+            borderColor: percentileColors[p].border,
+            backgroundColor: percentileColors[p].bg,
+            borderWidth: p === 50 ? 2 : 1,
+            borderDash: p === 50 ? [] : [4, 3],
+            pointRadius: 0,
+            fill: false,
+            tension: 0.3,
+            order: 2,
+        }));
+
+        datasets.push({
+            label: "{{ baby_profile.first_name if baby_profile else 'Bebé' }}",
+            data: babyData,
+            borderColor: "rgba(180,80,40,1)",
+            backgroundColor: "rgba(180,80,40,0.85)",
+            borderWidth: 2.5,
+            pointRadius: 5,
+            pointHoverRadius: 7,
+            fill: false,
+            tension: 0.2,
+            order: 1,
+        });
+
+        return datasets;
+    }
+
+    const commonOptions = {
+        responsive: true,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+            legend: { position: "bottom" },
+            tooltip: {
+                callbacks: {
+                    title: items => `Semana ${items[0].parsed.x}`,
+                },
+            },
+        },
+        scales: {
+            x: {
+                type: "linear",
+                title: { display: true, text: "Semanas de vida" },
+                ticks: { stepSize: 4 },
+            },
+            y: { title: { display: true, text: "" } },
+        },
+    };
+
+    new Chart(document.getElementById("weightChart"), {
+        type: "line",
+        data: { datasets: buildDatasets(weightCurves, babyWeightData) },
+        options: {
+            ...commonOptions,
+            scales: {
+                ...commonOptions.scales,
+                y: { title: { display: true, text: "kg" } },
+            },
+        },
+    });
+
+    new Chart(document.getElementById("lengthChart"), {
+        type: "line",
+        data: { datasets: buildDatasets(lengthCurves, babyLengthData) },
+        options: {
+            ...commonOptions,
+            scales: {
+                ...commonOptions.scales,
+                y: { title: { display: true, text: "cm" } },
+            },
+        },
+    });
+</script>
+
+</body>
+</html>

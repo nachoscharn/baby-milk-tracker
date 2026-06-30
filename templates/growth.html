@@ -50,6 +50,16 @@
                 Registrar medición
             </a>
 
+            {% if baby_profile and records %}
+            <a
+                class="button secondary-button"
+                href="{{ url_for('growth_chart') }}"
+            >
+                <i class="fa-solid fa-chart-line"></i>
+                Ver gráfico
+            </a>
+            {% endif %}
+
             <a
                 class="button secondary-button"
                 href="{{ url_for('index') }}"

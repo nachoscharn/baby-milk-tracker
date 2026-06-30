@@ -16,8 +16,12 @@ from baby_milk_tracker.models import (
     Pumping,
 )
 from baby_milk_tracker.percentiles import (
+    MAX_AGE_DAYS,
+    PERCENTILES,
     get_length_percentile,
+    get_length_percentile_curves,
     get_weight_percentile,
+    get_weight_percentile_curves,
     is_percentile_supported,
 )
 from baby_milk_tracker.storage import (
@@ -353,6 +357,46 @@ def new_growth():
 def delete_growth_record_route(growth_record_id: int):
     delete_growth_record(growth_record_id)
     return redirect(url_for("growth"))
+
+
+@app.route("/growth/chart")
+@login_required
+def growth_chart():
+    baby_id = current_baby_id()
+    baby_profile = get_baby_for_user(session["user_id"])
+
+    if not baby_profile or not baby_id:
+        return redirect(url_for("growth"))
+
+    records = get_growth_records(baby_id)
+
+    current_age_days = (now_argentina().date() - baby_profile.birth_date.date()).days
+    max_chart_weeks = min(int(current_age_days / 7), int(MAX_AGE_DAYS / 7))
+
+    baby_weight_data = []
+    baby_length_data = []
+    for record in records:
+        age_days = (record["created_at"].date() - baby_profile.birth_date.date()).days
+        if age_days >= 0:
+            age_weeks = round(age_days / 7, 1)
+            baby_weight_data.append({"x": age_weeks, "y": record["weight_kg"]})
+            baby_length_data.append({"x": age_weeks, "y": record["length_cm"]})
+
+    baby_weight_data.sort(key=lambda p: p["x"])
+    baby_length_data.sort(key=lambda p: p["x"])
+
+    weight_curves = get_weight_percentile_curves(baby_profile.sex, max_chart_weeks)
+    length_curves = get_length_percentile_curves(baby_profile.sex, max_chart_weeks)
+
+    return render_template(
+        "growth_chart.html",
+        baby_profile=baby_profile,
+        baby_weight_data=baby_weight_data,
+        baby_length_data=baby_length_data,
+        weight_curves=weight_curves,
+        length_curves=length_curves,
+        percentiles=PERCENTILES,
+    )
 
 
 @app.route("/appointments")
