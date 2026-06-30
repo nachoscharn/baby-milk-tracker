@@ -74,16 +74,25 @@
                     <p>
                         <strong>Fecha:</strong>
                         {{ record.created_at.strftime("%d/%m/%Y %H:%M") }}
+                        {% if record.formatted_age %}
+                            — {{ record.formatted_age }}
+                        {% endif %}
                     </p>
 
                     <p>
                         <strong>Peso:</strong>
                         {{ record.weight_kg }} kg
+                        {% if record.weight_percentile %}
+                            <span class="summary-percentile">P{{ record.weight_percentile }}</span>
+                        {% endif %}
                     </p>
 
                     <p>
                         <strong>Largo/altura:</strong>
                         {{ record.length_cm }} cm
+                        {% if record.length_percentile %}
+                            <span class="summary-percentile">P{{ record.length_percentile }}</span>
+                        {% endif %}
                     </p>
 
                     {% if record.head_circumference_cm %}

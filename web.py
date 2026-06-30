@@ -114,8 +114,6 @@ def index():
 
         if is_percentile_supported(baby_profile, last_growth_record):
             percentile_status = "available"
-        elif baby_profile.sex != "female":
-            percentile_status = "female_only"
         elif last_growth_age_days < 0:
             percentile_status = "before_birth"
         else:
