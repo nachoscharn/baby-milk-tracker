@@ -33,3 +33,4 @@ class BabyProfile:
     last_name: str
     birth_date: datetime
     sex: Literal["female", "male"]
+    id: int | None = None

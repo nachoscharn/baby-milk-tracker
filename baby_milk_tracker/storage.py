@@ -1,13 +1,54 @@
 from datetime import datetime, timedelta
 
-from baby_milk_tracker.database import get_connection, get_placeholder
+from baby_milk_tracker.database import (
+    get_connection,
+    get_placeholder,
+    insert_returning_id,
+)
 from baby_milk_tracker.models import BabyProfile, Feeding, GrowthRecord, Pumping
 from baby_milk_tracker.time_utils import now_argentina
 
 RANGE_DAYS = {"day": 1, "week": 7, "month": 30, "all": None}
 
 
-def save_feeding(feeding: Feeding) -> None:
+# ---------------------------------------------------------------------------
+# Baby / caregiver
+# ---------------------------------------------------------------------------
+
+
+def get_baby_for_user(user_id: int) -> BabyProfile | None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT b.id, b.first_name, b.last_name, b.birth_date, b.sex
+            FROM babies b
+            JOIN baby_caregivers bc ON bc.baby_id = b.id
+            WHERE bc.user_id = {placeholder}
+            ORDER BY b.id ASC
+            LIMIT 1
+            """,
+            (user_id,),
+        )
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    profile = BabyProfile(
+        first_name=row[1],
+        last_name=row[2],
+        birth_date=datetime.fromisoformat(row[3]),
+        sex=row[4],
+    )
+    profile.id = row[0]
+    return profile
+
+
+def save_baby(profile: BabyProfile, user_id: int) -> int:
+    """Create or update the baby linked to user_id. Returns baby_id."""
     placeholder = get_placeholder()
 
     with get_connection() as conn:
@@ -15,20 +56,72 @@ def save_feeding(feeding: Feeding) -> None:
 
         cursor.execute(
             f"""
-            INSERT INTO feedings (
-                created_at,
-                feeding_type,
-                side,
-                duration_min,
-                amount_ml
+            SELECT b.id FROM babies b
+            JOIN baby_caregivers bc ON bc.baby_id = b.id
+            WHERE bc.user_id = {placeholder}
+            LIMIT 1
+            """,
+            (user_id,),
+        )
+        row = cursor.fetchone()
+
+        if row:
+            baby_id = row[0]
+            cursor.execute(
+                f"""
+                UPDATE babies
+                SET first_name = {placeholder},
+                    last_name = {placeholder},
+                    birth_date = {placeholder},
+                    sex = {placeholder}
+                WHERE id = {placeholder}
+                """,
+                (
+                    profile.first_name,
+                    profile.last_name,
+                    profile.birth_date.date().isoformat(),
+                    profile.sex,
+                    baby_id,
+                ),
             )
-            VALUES (
-                {placeholder},
-                {placeholder},
-                {placeholder},
-                {placeholder},
-                {placeholder}
+        else:
+            baby_id = insert_returning_id(
+                cursor,
+                f"""
+                INSERT INTO babies (first_name, last_name, birth_date, sex)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
+                """,
+                (
+                    profile.first_name,
+                    profile.last_name,
+                    profile.birth_date.date().isoformat(),
+                    profile.sex,
+                ),
             )
+            cursor.execute(
+                f"INSERT INTO baby_caregivers (baby_id, user_id) VALUES ({placeholder}, {placeholder})",
+                (baby_id, user_id),
+            )
+
+        conn.commit()
+
+    return baby_id
+
+
+# ---------------------------------------------------------------------------
+# Feedings
+# ---------------------------------------------------------------------------
+
+
+def save_feeding(feeding: Feeding, baby_id: int) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            INSERT INTO feedings (created_at, feeding_type, side, duration_min, amount_ml, baby_id)
+            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
             """,
             (
                 feeding.created_at.isoformat(),
@@ -36,115 +129,27 @@ def save_feeding(feeding: Feeding) -> None:
                 feeding.side,
                 feeding.duration_min,
                 feeding.amount_ml,
+                baby_id,
             ),
         )
-
         conn.commit()
 
 
-def save_pumping(pumping: Pumping) -> None:
+def get_last_feeding(baby_id: int) -> Feeding | None:
     placeholder = get_placeholder()
 
     with get_connection() as conn:
         cursor = conn.cursor()
-
         cursor.execute(
             f"""
-            INSERT INTO pumpings (
-                created_at,
-                amount_ml,
-                side
-            )
-            VALUES (
-                {placeholder},
-                {placeholder},
-                {placeholder}
-            )
-            """,
-            (
-                pumping.created_at.isoformat(),
-                pumping.amount_ml,
-                pumping.side,
-            ),
-        )
-
-        conn.commit()
-
-
-def save_growth_record(growth_record: GrowthRecord) -> None:
-    placeholder = get_placeholder()
-
-    with get_connection() as conn:
-        cursor = conn.cursor()
-
-        cursor.execute(
-            f"""
-            INSERT INTO growth_records (
-                created_at,
-                weight_kg,
-                length_cm,
-                head_circumference_cm
-            )
-            VALUES (
-                {placeholder},
-                {placeholder},
-                {placeholder},
-                {placeholder}
-            )
-            """,
-            (
-                growth_record.created_at.isoformat(),
-                growth_record.weight_kg,
-                growth_record.length_cm,
-                growth_record.head_circumference_cm,
-            ),
-        )
-
-        conn.commit()
-
-
-def get_growth_records() -> list[GrowthRecord]:
-    with get_connection() as conn:
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
-            SELECT
-                created_at,
-                weight_kg,
-                length_cm,
-                head_circumference_cm
-            FROM growth_records
-            ORDER BY created_at DESC
-            """
-        )
-
-        rows = cursor.fetchall()
-
-    return [
-        GrowthRecord(
-            created_at=datetime.fromisoformat(row[0]),
-            weight_kg=row[1],
-            length_cm=row[2],
-            head_circumference_cm=row[3],
-        )
-        for row in rows
-    ]
-
-
-def get_last_feeding() -> Feeding | None:
-    with get_connection() as conn:
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
             SELECT created_at, feeding_type, side, duration_min, amount_ml
             FROM feedings
+            WHERE baby_id = {placeholder}
             ORDER BY created_at DESC
             LIMIT 1
-            """
+            """,
+            (baby_id,),
         )
-
         row = cursor.fetchone()
 
     if row is None:
@@ -159,94 +164,20 @@ def get_last_feeding() -> Feeding | None:
     )
 
 
-def get_last_pumping() -> Pumping | None:
-    with get_connection() as conn:
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
-            SELECT created_at, amount_ml, side
-            FROM pumpings
-            ORDER BY created_at DESC
-            LIMIT 1
-            """
-        )
-
-        row = cursor.fetchone()
-
-    if row is None:
-        return None
-
-    return Pumping(
-        created_at=datetime.fromisoformat(row[0]),
-        amount_ml=row[1],
-        side=row[2],
-    )
-
-
-def delete_all_records() -> None:
-    with get_connection() as conn:
-        cursor = conn.cursor()
-
-        cursor.execute("DELETE FROM feedings")
-        cursor.execute("DELETE FROM pumpings")
-
-        conn.commit()
-
-
-def get_start_datetime(range_name: str) -> datetime:
-    if range_name not in RANGE_DAYS:
-        raise ValueError(f"Invalid range name: {range_name}")
-
-    days = RANGE_DAYS[range_name]
-
-    return now_argentina() - timedelta(days=days)
-
-
-def get_pumpings_since(start_datetime: datetime) -> list[Pumping]:
+def get_feedings_since(start_datetime: datetime, baby_id: int) -> list[Feeding]:
     placeholder = get_placeholder()
 
     with get_connection() as conn:
         cursor = conn.cursor()
-
-        cursor.execute(
-            f"""
-            SELECT created_at, amount_ml, side
-            FROM pumpings
-            WHERE created_at >= {placeholder}
-            ORDER BY created_at
-            """,
-            (start_datetime.isoformat(),),
-        )
-
-        rows = cursor.fetchall()
-
-    return [
-        Pumping(
-            created_at=datetime.fromisoformat(row[0]),
-            amount_ml=row[1],
-            side=row[2],
-        )
-        for row in rows
-    ]
-
-
-def get_feedings_since(start_datetime: datetime) -> list[Feeding]:
-    placeholder = get_placeholder()
-
-    with get_connection() as conn:
-        cursor = conn.cursor()
-
         cursor.execute(
             f"""
             SELECT created_at, feeding_type, side, duration_min, amount_ml
             FROM feedings
-            WHERE created_at >= {placeholder}
+            WHERE created_at >= {placeholder} AND baby_id = {placeholder}
             ORDER BY created_at
             """,
-            (start_datetime.isoformat(),),
+            (start_datetime.isoformat(), baby_id),
         )
-
         rows = cursor.fetchall()
 
     return [
@@ -261,18 +192,20 @@ def get_feedings_since(start_datetime: datetime) -> list[Feeding]:
     ]
 
 
-def get_all_feedings() -> list[dict]:
+def get_all_feedings(baby_id: int) -> list[dict]:
+    placeholder = get_placeholder()
+
     with get_connection() as conn:
         cursor = conn.cursor()
-
         cursor.execute(
-            """
+            f"""
             SELECT id, created_at, feeding_type, side, duration_min, amount_ml
             FROM feedings
+            WHERE baby_id = {placeholder}
             ORDER BY created_at DESC
-            """
+            """,
+            (baby_id,),
         )
-
         rows = cursor.fetchall()
 
     return [
@@ -288,18 +221,110 @@ def get_all_feedings() -> list[dict]:
     ]
 
 
-def get_all_pumpings() -> list[dict]:
+def delete_feeding(feeding_id: int) -> None:
+    placeholder = get_placeholder()
+
     with get_connection() as conn:
         cursor = conn.cursor()
-
         cursor.execute(
-            """
+            f"DELETE FROM feedings WHERE id = {placeholder}",
+            (feeding_id,),
+        )
+        conn.commit()
+
+
+# ---------------------------------------------------------------------------
+# Pumpings
+# ---------------------------------------------------------------------------
+
+
+def save_pumping(pumping: Pumping, baby_id: int) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            INSERT INTO pumpings (created_at, amount_ml, side, baby_id)
+            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
+            """,
+            (
+                pumping.created_at.isoformat(),
+                pumping.amount_ml,
+                pumping.side,
+                baby_id,
+            ),
+        )
+        conn.commit()
+
+
+def get_last_pumping(baby_id: int) -> Pumping | None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT created_at, amount_ml, side
+            FROM pumpings
+            WHERE baby_id = {placeholder}
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (baby_id,),
+        )
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return Pumping(
+        created_at=datetime.fromisoformat(row[0]),
+        amount_ml=row[1],
+        side=row[2],
+    )
+
+
+def get_pumpings_since(start_datetime: datetime, baby_id: int) -> list[Pumping]:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT created_at, amount_ml, side
+            FROM pumpings
+            WHERE created_at >= {placeholder} AND baby_id = {placeholder}
+            ORDER BY created_at
+            """,
+            (start_datetime.isoformat(), baby_id),
+        )
+        rows = cursor.fetchall()
+
+    return [
+        Pumping(
+            created_at=datetime.fromisoformat(row[0]),
+            amount_ml=row[1],
+            side=row[2],
+        )
+        for row in rows
+    ]
+
+
+def get_all_pumpings(baby_id: int) -> list[dict]:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
             SELECT id, created_at, amount_ml, side
             FROM pumpings
+            WHERE baby_id = {placeholder}
             ORDER BY created_at DESC
-            """
+            """,
+            (baby_id,),
         )
-
         rows = cursor.fetchall()
 
     return [
@@ -313,32 +338,112 @@ def get_all_pumpings() -> list[dict]:
     ]
 
 
-def delete_feeding(feeding_id: int) -> None:
-    placeholder = get_placeholder()
-
-    with get_connection() as conn:
-        cursor = conn.cursor()
-
-        cursor.execute(
-            f"DELETE FROM feedings WHERE id = {placeholder}",
-            (feeding_id,),
-        )
-
-        conn.commit()
-
-
 def delete_pumping(pumping_id: int) -> None:
     placeholder = get_placeholder()
 
     with get_connection() as conn:
         cursor = conn.cursor()
-
         cursor.execute(
             f"DELETE FROM pumpings WHERE id = {placeholder}",
             (pumping_id,),
         )
-
         conn.commit()
+
+
+def delete_all_records(baby_id: int) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"DELETE FROM feedings WHERE baby_id = {placeholder}", (baby_id,)
+        )
+        cursor.execute(
+            f"DELETE FROM pumpings WHERE baby_id = {placeholder}", (baby_id,)
+        )
+        conn.commit()
+
+
+# ---------------------------------------------------------------------------
+# Growth records
+# ---------------------------------------------------------------------------
+
+
+def save_growth_record(growth_record: GrowthRecord, baby_id: int) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            INSERT INTO growth_records (created_at, weight_kg, length_cm, head_circumference_cm, baby_id)
+            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+            """,
+            (
+                growth_record.created_at.isoformat(),
+                growth_record.weight_kg,
+                growth_record.length_cm,
+                growth_record.head_circumference_cm,
+                baby_id,
+            ),
+        )
+        conn.commit()
+
+
+def get_last_growth_record(baby_id: int) -> GrowthRecord | None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT created_at, weight_kg, length_cm, head_circumference_cm
+            FROM growth_records
+            WHERE baby_id = {placeholder}
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (baby_id,),
+        )
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return GrowthRecord(
+        created_at=datetime.fromisoformat(row[0]),
+        weight_kg=row[1],
+        length_cm=row[2],
+        head_circumference_cm=row[3],
+    )
+
+
+def get_growth_records(baby_id: int) -> list[dict]:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT id, created_at, weight_kg, length_cm, head_circumference_cm
+            FROM growth_records
+            WHERE baby_id = {placeholder}
+            ORDER BY created_at DESC
+            """,
+            (baby_id,),
+        )
+        rows = cursor.fetchall()
+
+    return [
+        {
+            "id": row[0],
+            "created_at": datetime.fromisoformat(row[1]),
+            "weight_kg": row[2],
+            "length_cm": row[3],
+            "head_circumference_cm": row[4],
+        }
+        for row in rows
+    ]
 
 
 def delete_growth_record(growth_record_id: int) -> None:
@@ -346,22 +451,35 @@ def delete_growth_record(growth_record_id: int) -> None:
 
     with get_connection() as conn:
         cursor = conn.cursor()
-
         cursor.execute(
-            f"""
-            DELETE FROM growth_records
-            WHERE id = {placeholder}
-            """,
+            f"DELETE FROM growth_records WHERE id = {placeholder}",
             (growth_record_id,),
         )
-
         conn.commit()
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def get_start_datetime(range_name: str) -> datetime:
+    if range_name not in RANGE_DAYS:
+        raise ValueError(f"Invalid range name: {range_name}")
+
+    days = RANGE_DAYS[range_name]
+
+    return now_argentina() - timedelta(days=days)
+
+
+# ---------------------------------------------------------------------------
+# Legacy — kept for backward compat during transition
+# ---------------------------------------------------------------------------
 
 
 def get_baby_profile() -> BabyProfile | None:
     with get_connection() as conn:
         cursor = conn.cursor()
-
         cursor.execute(
             """
             SELECT first_name, last_name, birth_date, sex
@@ -370,7 +488,6 @@ def get_baby_profile() -> BabyProfile | None:
             LIMIT 1
             """
         )
-
         row = cursor.fetchone()
 
     if row is None:
@@ -389,23 +506,11 @@ def save_baby_profile(profile: BabyProfile) -> None:
 
     with get_connection() as conn:
         cursor = conn.cursor()
-
         cursor.execute("DELETE FROM baby_profile")
-
         cursor.execute(
             f"""
-            INSERT INTO baby_profile (
-                first_name,
-                last_name,
-                birth_date,
-                sex
-            )
-            VALUES (
-                {placeholder},
-                {placeholder},
-                {placeholder},
-                {placeholder}
-            )
+            INSERT INTO baby_profile (first_name, last_name, birth_date, sex)
+            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
             """,
             (
                 profile.first_name,
@@ -414,35 +519,4 @@ def save_baby_profile(profile: BabyProfile) -> None:
                 profile.sex,
             ),
         )
-
         conn.commit()
-
-
-def get_last_growth_record() -> GrowthRecord | None:
-    with get_connection() as conn:
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """
-            SELECT
-                created_at,
-                weight_kg,
-                length_cm,
-                head_circumference_cm
-            FROM growth_records
-            ORDER BY created_at DESC
-            LIMIT 1
-            """
-        )
-
-        row = cursor.fetchone()
-
-    if row is None:
-        return None
-
-    return GrowthRecord(
-        created_at=datetime.fromisoformat(row[0]),
-        weight_kg=row[1],
-        length_cm=row[2],
-        head_circumference_cm=row[3],
-    )

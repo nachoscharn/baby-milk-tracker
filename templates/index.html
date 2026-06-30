@@ -55,37 +55,86 @@
         
                 </div>
 
-            {% if baby_profile %}
+                {% if baby_profile %}
 
                 <div class="baby-summary">
-
+            
                     <h2>
-                        {{ baby_profile.first_name }} 
+                        {{ baby_profile.first_name }}
                         {{ baby_profile.last_name }}
                     </h2>
-
+            
                     {% if baby_age_days is not none %}
-                        <p>
-                            <p>
-                                {{ formatted_baby_age }} de vida
-                            </p>
+                        <p class="baby-age">
+                            {{ formatted_baby_age }} de vida
                         </p>
                     {% endif %}
-
+            
                     {% if last_growth_record %}
-                        <p>
-                            <strong>Último peso:</strong>
-                            {{ last_growth_record.weight_kg }} kg
-                        </p>
+            
+                        <div class="growth-meta">
+            
+                            <div class="growth-meta">
 
-                        <p>
-                            <strong>Último largo:</strong>
-                            {{ last_growth_record.length_cm }} cm
-                        </p>
+                                <strong>
+                                    Medición del
+                                    {{ last_growth_record.created_at.strftime("%d/%m/%Y") }}
+                                </strong>
+                            
+                                {% if formatted_last_growth_age %}
+                                    <p>
+                                        {{ formatted_last_growth_age }}
+                                    </p>
+                                {% endif %}
+                            
+                            </div>
+            
+                        </div>
+            
+                        <div class="growth-summary-grid">
+            
+                            <div class="growth-summary-card">
+            
+                                <span class="summary-label">
+                                    Peso
+                                </span>
+            
+                                <strong>
+                                    {{ last_growth_record.weight_kg }} kg
+                                </strong>
+            
+                                {% if weight_percentile %}
+                                    <span class="summary-percentile">
+                                        Percentil {{ weight_percentile }}
+                                    </span>
+                                {% endif %}
+            
+                            </div>
+            
+                            <div class="growth-summary-card">
+            
+                                <span class="summary-label">
+                                    Largo
+                                </span>
+            
+                                <strong>
+                                    {{ last_growth_record.length_cm }} cm
+                                </strong>
+            
+                                {% if length_percentile %}
+                                    <span class="summary-percentile">
+                                        Percentil {{ length_percentile }}
+                                    </span>
+                                {% endif %}
+            
+                            </div>
+            
+                        </div>
+            
                     {% endif %}
-
+            
                 </div>
-
+            
             {% endif %}
 
             <div class="home-actions">
@@ -94,7 +143,12 @@
                     href="{{ url_for('baby_profile') }}"
                 >
                     <i class="fa-solid fa-baby"></i>
-                    Perfil bebé
+
+                    {% if baby_profile %}
+                        Editar perfil bebé
+                    {% else %}
+                        Crear perfil bebé
+                    {% endif %}
                 </a>
 
                 <a

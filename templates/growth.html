@@ -71,7 +71,6 @@
             {% for record in records %}
 
                 <div class="history-item">
-
                     <p>
                         <strong>Fecha:</strong>
                         {{ record.created_at.strftime("%d/%m/%Y %H:%M") }}
@@ -96,7 +95,20 @@
 
                     {% endif %}
 
-                </div>
+                    <form
+                        method="POST"
+                        action="/growth/{{ record.id }}/delete"
+                        onsubmit="return confirm('¿Seguro querés borrar este registro de crecimiento?');"
+                    >
+                        <button
+                            type="submit"
+                            class="delete-button"
+                        >
+                            Borrar
+                        </button>
+                    </form>
+
+                    </div>
 
             {% endfor %}
 
