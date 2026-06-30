@@ -244,8 +244,11 @@ def delete_pumping_route(pumping_id: int):
 @app.route("/pumping/new", methods=["GET", "POST"])
 @login_required
 def new_pumping():
+    baby_id = current_baby_id()
+    if not baby_id:
+        return redirect(url_for("baby_profile"))
+
     if request.method == "POST":
-        baby_id = current_baby_id()
         pumping = Pumping(
             created_at=get_created_at_from_form(),
             amount_ml=int(request.form["amount_ml"]),
@@ -260,8 +263,11 @@ def new_pumping():
 @app.route("/feeding/new", methods=["GET", "POST"])
 @login_required
 def new_feeding():
+    baby_id = current_baby_id()
+    if not baby_id:
+        return redirect(url_for("baby_profile"))
+
     if request.method == "POST":
-        baby_id = current_baby_id()
         feeding_type = request.form["feeding_type"]
 
         duration_min = request.form.get("duration_min")
@@ -327,8 +333,11 @@ def growth():
 @app.route("/growth/new", methods=["GET", "POST"])
 @login_required
 def new_growth():
+    baby_id = current_baby_id()
+    if not baby_id:
+        return redirect(url_for("baby_profile"))
+
     if request.method == "POST":
-        baby_id = current_baby_id()
         head_circumference_cm = request.form.get("head_circumference_cm")
         created_at_raw = request.form.get("created_at")
 
@@ -412,6 +421,9 @@ def appointments():
 @login_required
 def new_appointment():
     baby_id = current_baby_id()
+    if not baby_id:
+        return redirect(url_for("baby_profile"))
+
     if request.method == "POST":
         appointment = Appointment(
             appointment_datetime=datetime.fromisoformat(
@@ -444,6 +456,9 @@ def medical():
 @login_required
 def new_medical_study():
     baby_id = current_baby_id()
+    if not baby_id:
+        return redirect(url_for("baby_profile"))
+
     if request.method == "POST":
         study = MedicalStudy(
             study_date=datetime.fromisoformat(request.form["study_date"]),
