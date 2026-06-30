@@ -5,7 +5,14 @@ from baby_milk_tracker.database import (
     get_placeholder,
     insert_returning_id,
 )
-from baby_milk_tracker.models import BabyProfile, Feeding, GrowthRecord, Pumping
+from baby_milk_tracker.models import (
+    Appointment,
+    BabyProfile,
+    Feeding,
+    GrowthRecord,
+    MedicalStudy,
+    Pumping,
+)
 from baby_milk_tracker.time_utils import now_argentina
 
 RANGE_DAYS = {"day": 1, "week": 7, "month": 30, "all": None}
@@ -454,6 +461,142 @@ def delete_growth_record(growth_record_id: int) -> None:
         cursor.execute(
             f"DELETE FROM growth_records WHERE id = {placeholder}",
             (growth_record_id,),
+        )
+        conn.commit()
+
+
+# ---------------------------------------------------------------------------
+# Appointments
+# ---------------------------------------------------------------------------
+
+
+def save_appointment(appointment: Appointment, baby_id: int) -> int:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        appointment_id = insert_returning_id(
+            cursor,
+            f"""
+            INSERT INTO appointments (baby_id, appointment_datetime, doctor_specialty, location)
+            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder})
+            """,
+            (
+                baby_id,
+                appointment.appointment_datetime.isoformat(),
+                appointment.doctor_specialty,
+                appointment.location,
+            ),
+        )
+        conn.commit()
+
+    return appointment_id
+
+
+def get_appointments(baby_id: int) -> list[dict]:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT id, appointment_datetime, doctor_specialty, location
+            FROM appointments
+            WHERE baby_id = {placeholder}
+            ORDER BY appointment_datetime ASC
+            """,
+            (baby_id,),
+        )
+        rows = cursor.fetchall()
+
+    return [
+        {
+            "id": row[0],
+            "appointment_datetime": datetime.fromisoformat(row[1]),
+            "doctor_specialty": row[2],
+            "location": row[3],
+        }
+        for row in rows
+    ]
+
+
+def delete_appointment(appointment_id: int) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"DELETE FROM appointments WHERE id = {placeholder}",
+            (appointment_id,),
+        )
+        conn.commit()
+
+
+# ---------------------------------------------------------------------------
+# Medical studies
+# ---------------------------------------------------------------------------
+
+
+def save_medical_study(study: MedicalStudy, baby_id: int) -> int:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        study_id = insert_returning_id(
+            cursor,
+            f"""
+            INSERT INTO medical_studies (baby_id, study_date, study_type, result, doctor)
+            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+            """,
+            (
+                baby_id,
+                study.study_date.isoformat(),
+                study.study_type,
+                study.result,
+                study.doctor,
+            ),
+        )
+        conn.commit()
+
+    return study_id
+
+
+def get_medical_studies(baby_id: int) -> list[dict]:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT id, study_date, study_type, result, doctor
+            FROM medical_studies
+            WHERE baby_id = {placeholder}
+            ORDER BY study_date DESC
+            """,
+            (baby_id,),
+        )
+        rows = cursor.fetchall()
+
+    return [
+        {
+            "id": row[0],
+            "study_date": datetime.fromisoformat(row[1]),
+            "study_type": row[2],
+            "result": row[3],
+            "doctor": row[4],
+        }
+        for row in rows
+    ]
+
+
+def delete_medical_study(study_id: int) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"DELETE FROM medical_studies WHERE id = {placeholder}",
+            (study_id,),
         )
         conn.commit()
 

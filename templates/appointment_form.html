@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8b5a2b">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <title>Agregar turno</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>Agregar turno</h1>
+
+        <form method="POST">
+
+            <label for="appointment_datetime">Fecha y hora</label>
+            <input
+                type="datetime-local"
+                id="appointment_datetime"
+                name="appointment_datetime"
+                required
+            >
+
+            <label for="doctor_specialty">Médico / especialidad</label>
+            <input
+                type="text"
+                id="doctor_specialty"
+                name="doctor_specialty"
+                placeholder="Ej: Dr. García — Pediatra"
+                required
+            >
+
+            <label for="location">Lugar / dirección</label>
+            <input
+                type="text"
+                id="location"
+                name="location"
+                placeholder="Ej: Av. Corrientes 1234"
+            >
+
+            <button type="submit">Guardar</button>
+
+            <a class="button secondary-button" href="{{ url_for('appointments') }}">
+                Cancelar
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>

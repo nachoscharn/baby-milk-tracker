@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8b5a2b">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <title>Estudios médicos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>
+            <i class="fa-solid fa-file-medical"></i>
+            Estudios realizados
+        </h1>
+
+        <div class="home-actions">
+
+            <a class="button" href="{{ url_for('new_medical_study') }}">
+                <i class="fa-solid fa-plus"></i>
+                Agregar estudio
+            </a>
+
+            <a class="button secondary-button" href="{{ url_for('index') }}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver
+            </a>
+
+        </div>
+
+        {% if not studies %}
+
+            <p>No hay estudios cargados.</p>
+
+        {% else %}
+
+            {% for study in studies %}
+
+                <div class="history-item">
+
+                    <p>
+                        <strong>{{ study.study_date.strftime("%d/%m/%Y") }}</strong>
+                        — {{ study.study_type }}
+                    </p>
+
+                    {% if study.doctor %}
+                        <p>
+                            <i class="fa-solid fa-user-doctor"></i>
+                            Indicado por: {{ study.doctor }}
+                        </p>
+                    {% endif %}
+
+                    {% if study.result %}
+                        <p>
+                            <i class="fa-solid fa-clipboard"></i>
+                            {{ study.result }}
+                        </p>
+                    {% endif %}
+
+                    <form
+                        method="POST"
+                        action="/medical/{{ study.id }}/delete"
+                        onsubmit="return confirm('¿Borrar este estudio?');"
+                    >
+                        <button type="submit" class="delete-button">Borrar</button>
+                    </form>
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

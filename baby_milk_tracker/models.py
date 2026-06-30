@@ -34,3 +34,20 @@ class BabyProfile:
     birth_date: datetime
     sex: Literal["female", "male"]
     id: int | None = None
+
+
+@dataclass
+class Appointment:
+    appointment_datetime: datetime
+    doctor_specialty: str
+    location: str | None = None
+    id: int | None = None
+
+
+@dataclass
+class MedicalStudy:
+    study_date: datetime
+    study_type: str
+    result: str | None = None
+    doctor: str | None = None
+    id: int | None = None

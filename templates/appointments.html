@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8b5a2b">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <title>Próximos turnos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>
+            <i class="fa-solid fa-calendar-check"></i>
+            Turnos médicos
+        </h1>
+
+        <div class="home-actions">
+
+            <a class="button" href="{{ url_for('new_appointment') }}">
+                <i class="fa-solid fa-plus"></i>
+                Agregar turno
+            </a>
+
+            <a class="button secondary-button" href="{{ url_for('index') }}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver
+            </a>
+
+        </div>
+
+        {% if not appointments %}
+
+            <p>No hay turnos cargados.</p>
+
+        {% else %}
+
+            {% for appt in appointments %}
+
+                <div class="history-item {% if appt.appointment_datetime < now %}appointment-past{% endif %}">
+
+                    <p>
+                        <strong>
+                            <i class="fa-solid fa-calendar"></i>
+                            {{ appt.appointment_datetime.strftime("%d/%m/%Y %H:%M") }}
+                        </strong>
+                        {% if appt.appointment_datetime < now %}
+                            <span class="badge-past">Pasado</span>
+                        {% endif %}
+                    </p>
+
+                    <p>
+                        <i class="fa-solid fa-user-doctor"></i>
+                        {{ appt.doctor_specialty }}
+                    </p>
+
+                    {% if appt.location %}
+                        <p>
+                            <i class="fa-solid fa-location-dot"></i>
+                            {{ appt.location }}
+                        </p>
+                    {% endif %}
+
+                    <form
+                        method="POST"
+                        action="/appointments/{{ appt.id }}/delete"
+                        onsubmit="return confirm('¿Borrar este turno?');"
+                    >
+                        <button type="submit" class="delete-button">Borrar</button>
+                    </form>
+
+                </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

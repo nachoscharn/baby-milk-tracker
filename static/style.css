@@ -521,3 +521,31 @@ label {
     margin-top: 4px;
     font-size: 14px;
 }
+
+textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    margin-top: 6px;
+    margin-bottom: 16px;
+    border: 1px solid #d8c8b6;
+    border-radius: 12px;
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.appointment-past {
+    opacity: 0.6;
+}
+
+.badge-past {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #e0d0c0;
+    color: #7a5230;
+    font-size: 12px;
+    font-weight: bold;
+}

@@ -138,6 +138,31 @@ def init_db() -> None:
             """
         )
 
+        cursor.execute(
+            f"""
+            CREATE TABLE IF NOT EXISTS appointments (
+                id {id_type},
+                baby_id INTEGER NOT NULL,
+                appointment_datetime TEXT NOT NULL,
+                doctor_specialty TEXT NOT NULL,
+                location TEXT
+            )
+            """
+        )
+
+        cursor.execute(
+            f"""
+            CREATE TABLE IF NOT EXISTS medical_studies (
+                id {id_type},
+                baby_id INTEGER NOT NULL,
+                study_date TEXT NOT NULL,
+                study_type TEXT NOT NULL,
+                result TEXT,
+                doctor TEXT
+            )
+            """
+        )
+
         # Add baby_id to existing tables that predate this schema
         _add_column_if_not_exists(cursor, "feedings", "baby_id", "INTEGER")
         _add_column_if_not_exists(cursor, "pumpings", "baby_id", "INTEGER")

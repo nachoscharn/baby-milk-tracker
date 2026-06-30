@@ -7,7 +7,14 @@ from flask import Flask, redirect, render_template, request, session, url_for
 from baby_milk_tracker.auth import get_user_by_credentials
 from baby_milk_tracker.database import init_db
 from baby_milk_tracker.migrations import run_migrations
-from baby_milk_tracker.models import BabyProfile, Feeding, GrowthRecord, Pumping
+from baby_milk_tracker.models import (
+    Appointment,
+    BabyProfile,
+    Feeding,
+    GrowthRecord,
+    MedicalStudy,
+    Pumping,
+)
 from baby_milk_tracker.percentiles import (
     get_length_percentile,
     get_weight_percentile,
@@ -15,22 +22,28 @@ from baby_milk_tracker.percentiles import (
 )
 from baby_milk_tracker.storage import (
     delete_all_records,
+    delete_appointment,
     delete_feeding,
     delete_growth_record,
+    delete_medical_study,
     delete_pumping,
     get_all_feedings,
     get_all_pumpings,
+    get_appointments,
     get_baby_for_user,
     get_feedings_since,
     get_growth_records,
     get_last_feeding,
     get_last_growth_record,
     get_last_pumping,
+    get_medical_studies,
     get_pumpings_since,
     get_start_datetime,
+    save_appointment,
     save_baby,
     save_feeding,
     save_growth_record,
+    save_medical_study,
     save_pumping,
 )
 from baby_milk_tracker.time_utils import (
@@ -374,6 +387,70 @@ def new_growth():
 def delete_growth_record_route(growth_record_id: int):
     delete_growth_record(growth_record_id)
     return redirect(url_for("growth"))
+
+
+@app.route("/appointments")
+@login_required
+def appointments():
+    baby_id = current_baby_id()
+    items = get_appointments(baby_id) if baby_id else []
+    now = now_argentina()
+    return render_template("appointments.html", appointments=items, now=now)
+
+
+@app.route("/appointments/new", methods=["GET", "POST"])
+@login_required
+def new_appointment():
+    baby_id = current_baby_id()
+    if request.method == "POST":
+        appointment = Appointment(
+            appointment_datetime=datetime.fromisoformat(
+                request.form["appointment_datetime"]
+            ),
+            doctor_specialty=request.form["doctor_specialty"],
+            location=request.form.get("location") or None,
+        )
+        save_appointment(appointment, baby_id)
+        return redirect(url_for("appointments"))
+    return render_template("appointment_form.html")
+
+
+@app.route("/appointments/<int:appointment_id>/delete", methods=["POST"])
+@login_required
+def delete_appointment_route(appointment_id: int):
+    delete_appointment(appointment_id)
+    return redirect(url_for("appointments"))
+
+
+@app.route("/medical")
+@login_required
+def medical():
+    baby_id = current_baby_id()
+    items = get_medical_studies(baby_id) if baby_id else []
+    return render_template("medical.html", studies=items)
+
+
+@app.route("/medical/new", methods=["GET", "POST"])
+@login_required
+def new_medical_study():
+    baby_id = current_baby_id()
+    if request.method == "POST":
+        study = MedicalStudy(
+            study_date=datetime.fromisoformat(request.form["study_date"]),
+            study_type=request.form["study_type"],
+            result=request.form.get("result") or None,
+            doctor=request.form.get("doctor") or None,
+        )
+        save_medical_study(study, baby_id)
+        return redirect(url_for("medical"))
+    return render_template("medical_form.html")
+
+
+@app.route("/medical/<int:study_id>/delete", methods=["POST"])
+@login_required
+def delete_medical_study_route(study_id: int):
+    delete_medical_study(study_id)
+    return redirect(url_for("medical"))
 
 
 @app.route("/baby-profile", methods=["GET", "POST"])
