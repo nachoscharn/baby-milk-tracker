@@ -549,3 +549,45 @@ textarea {
     font-size: 12px;
     font-weight: bold;
 }
+
+.settings-section-title {
+    font-weight: bold;
+    color: #8f6540;
+    margin-top: 16px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid #ead7c2;
+    cursor: pointer;
+}
+
+.toggle-label input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    padding: 0;
+    accent-color: #b07a4f;
+    cursor: pointer;
+}
+
+.toggle-text {
+    font-size: 16px;
+    color: #3b3128;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toggle-text i {
+    color: #8b5a2b;
+    width: 18px;
+    text-align: center;
+}

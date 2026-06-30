@@ -63,6 +63,11 @@
                                 Ver gráficos
                             </a>
                             <div class="menu-divider"></div>
+                            <a class="menu-item" href="{{ url_for('settings') }}">
+                                <i class="fa-solid fa-sliders"></i>
+                                Configuración
+                            </a>
+                            <div class="menu-divider"></div>
                             <a class="menu-item menu-item-danger" href="{{ url_for('logout') }}">
                                 <i class="fa-solid fa-right-from-bracket"></i>
                                 Cerrar sesión
@@ -161,10 +166,12 @@
                     Registrar toma
                 </a>
 
+                {% if settings.show_pumpings %}
                 <a class="button" href="/pumping/new">
                     <i class="fa-solid fa-droplet"></i>
                     Registrar extracción
                 </a>
+                {% endif %}
 
                 <a class="button" href="/history">
                     <i class="fa-solid fa-clock-rotate-left"></i>
@@ -262,6 +269,7 @@
 
         </div>
 
+        {% if settings.show_pumpings %}
         <div class="card">
 
             <h2>
@@ -322,6 +330,7 @@
             {% endif %}
 
         </div>
+        {% endif %}
 
         <div class="card">
 

@@ -163,6 +163,15 @@ def init_db() -> None:
             """
         )
 
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_settings (
+                user_id INTEGER PRIMARY KEY,
+                show_pumpings INTEGER NOT NULL DEFAULT 1
+            )
+            """
+        )
+
         # Add baby_id to existing tables that predate this schema
         _add_column_if_not_exists(cursor, "feedings", "baby_id", "INTEGER")
         _add_column_if_not_exists(cursor, "pumpings", "baby_id", "INTEGER")

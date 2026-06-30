@@ -631,6 +631,58 @@ def delete_medical_study(study_id: int) -> None:
 
 
 # ---------------------------------------------------------------------------
+# User settings
+# ---------------------------------------------------------------------------
+
+_DEFAULTS = {"show_pumpings": True}
+
+
+def get_user_settings(user_id: int) -> dict:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"SELECT show_pumpings FROM user_settings WHERE user_id = {placeholder}",
+            (user_id,),
+        )
+        row = cursor.fetchone()
+
+    if row is None:
+        return dict(_DEFAULTS)
+
+    return {"show_pumpings": bool(row[0])}
+
+
+def save_user_settings(user_id: int, settings: dict) -> None:
+    from baby_milk_tracker.database import DATABASE_URL
+
+    placeholder = get_placeholder()
+    show_pumpings = int(settings.get("show_pumpings", True))
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        if DATABASE_URL:
+            cursor.execute(
+                f"""
+                INSERT INTO user_settings (user_id, show_pumpings)
+                VALUES ({placeholder}, {placeholder})
+                ON CONFLICT (user_id) DO UPDATE SET show_pumpings = EXCLUDED.show_pumpings
+                """,
+                (user_id, show_pumpings),
+            )
+        else:
+            cursor.execute(
+                f"""
+                INSERT OR REPLACE INTO user_settings (user_id, show_pumpings)
+                VALUES ({placeholder}, {placeholder})
+                """,
+                (user_id, show_pumpings),
+            )
+        conn.commit()
+
+
+# ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 

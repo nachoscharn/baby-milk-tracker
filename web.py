@@ -40,12 +40,14 @@ from baby_milk_tracker.storage import (
     get_next_appointment,
     get_pumpings_since,
     get_start_datetime,
+    get_user_settings,
     save_appointment,
     save_baby,
     save_feeding,
     save_growth_record,
     save_medical_study,
     save_pumping,
+    save_user_settings,
 )
 from baby_milk_tracker.time_utils import (
     ARGENTINA_TIMEZONE,
@@ -91,8 +93,12 @@ def index():
     baby_id = current_baby_id()
     baby_profile = get_baby_for_user(session["user_id"])
 
+    settings = get_user_settings(session["user_id"])
+
     last_feeding = get_last_feeding(baby_id) if baby_id else None
-    last_pumping = get_last_pumping(baby_id) if baby_id else None
+    last_pumping = (
+        get_last_pumping(baby_id) if baby_id and settings["show_pumpings"] else None
+    )
     last_growth_record = get_last_growth_record(baby_id) if baby_id else None
     next_appointment = get_next_appointment(baby_id) if baby_id else None
 
@@ -148,6 +154,7 @@ def index():
         last_growth_age_days=last_growth_age_days,
         formatted_last_growth_age=formatted_last_growth_age,
         next_appointment=next_appointment,
+        settings=settings,
     )
 
 
@@ -454,6 +461,20 @@ def new_medical_study():
 def delete_medical_study_route(study_id: int):
     delete_medical_study(study_id)
     return redirect(url_for("medical"))
+
+
+@app.route("/settings", methods=["GET", "POST"])
+@login_required
+def settings():
+    user_id = session["user_id"]
+    if request.method == "POST":
+        save_user_settings(
+            user_id,
+            {"show_pumpings": "show_pumpings" in request.form},
+        )
+        return redirect(url_for("settings"))
+    current = get_user_settings(user_id)
+    return render_template("settings.html", settings=current)
 
 
 @app.route("/baby-profile", methods=["GET", "POST"])
