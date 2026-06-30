@@ -326,6 +326,50 @@
         <div class="card">
 
             <h2>
+                <i class="fa-solid fa-calendar-check"></i>
+                Próximo turno
+            </h2>
+
+            {% if next_appointment %}
+
+                <p>
+                    <strong>
+                        {{ next_appointment.appointment_datetime.strftime("%d/%m/%Y %H:%M") }}
+                    </strong>
+                </p>
+
+                <p>
+                    <i class="fa-solid fa-user-doctor"></i>
+                    {{ next_appointment.doctor_specialty }}
+                </p>
+
+                {% if next_appointment.location %}
+                    <p>
+                        <i class="fa-solid fa-location-dot"></i>
+                        {{ next_appointment.location }}
+                    </p>
+                {% endif %}
+
+                <a class="button secondary-button" href="{{ url_for('appointments') }}">
+                    Ver todos los turnos
+                </a>
+
+            {% else %}
+
+                <p>No hay turnos próximos.</p>
+
+                <a class="button secondary-button" href="{{ url_for('new_appointment') }}">
+                    <i class="fa-solid fa-plus"></i>
+                    Agregar turno
+                </a>
+
+            {% endif %}
+
+        </div>
+
+        <div class="card">
+
+            <h2>
                 <i class="fa-solid fa-gear"></i>
                 Administración
             </h2>

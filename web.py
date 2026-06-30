@@ -37,6 +37,7 @@ from baby_milk_tracker.storage import (
     get_last_growth_record,
     get_last_pumping,
     get_medical_studies,
+    get_next_appointment,
     get_pumpings_since,
     get_start_datetime,
     save_appointment,
@@ -93,6 +94,7 @@ def index():
     last_feeding = get_last_feeding(baby_id) if baby_id else None
     last_pumping = get_last_pumping(baby_id) if baby_id else None
     last_growth_record = get_last_growth_record(baby_id) if baby_id else None
+    next_appointment = get_next_appointment(baby_id) if baby_id else None
 
     baby_age_days = None
     formatted_baby_age = None
@@ -145,6 +147,7 @@ def index():
         percentile_status=percentile_status,
         last_growth_age_days=last_growth_age_days,
         formatted_last_growth_age=formatted_last_growth_age,
+        next_appointment=next_appointment,
     )
 
 

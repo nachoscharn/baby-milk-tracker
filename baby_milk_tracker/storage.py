@@ -520,6 +520,35 @@ def get_appointments(baby_id: int) -> list[dict]:
     ]
 
 
+def get_next_appointment(baby_id: int) -> dict | None:
+    placeholder = get_placeholder()
+    now = now_argentina().replace(tzinfo=None).isoformat()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT id, appointment_datetime, doctor_specialty, location
+            FROM appointments
+            WHERE baby_id = {placeholder} AND appointment_datetime >= {placeholder}
+            ORDER BY appointment_datetime ASC
+            LIMIT 1
+            """,
+            (baby_id, now),
+        )
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return {
+        "id": row[0],
+        "appointment_datetime": datetime.fromisoformat(row[1]),
+        "doctor_specialty": row[2],
+        "location": row[3],
+    }
+
+
 def delete_appointment(appointment_id: int) -> None:
     placeholder = get_placeholder()
 
