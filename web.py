@@ -53,7 +53,6 @@ from baby_milk_tracker.storage import (
     save_user_settings,
 )
 from baby_milk_tracker.time_utils import (
-    ARGENTINA_TIMEZONE,
     from_baby_age,
     now_argentina,
 )
@@ -81,9 +80,9 @@ def get_created_at_from_form():
     created_at = request.form.get("created_at")
 
     if not created_at:
-        return now_argentina()
+        return now_argentina().replace(tzinfo=None)
 
-    return datetime.fromisoformat(created_at).replace(tzinfo=ARGENTINA_TIMEZONE)
+    return datetime.fromisoformat(created_at)
 
 
 def current_baby_id() -> int | None:
@@ -344,7 +343,7 @@ def new_growth():
         created_at = (
             datetime.fromisoformat(created_at_raw)
             if created_at_raw
-            else now_argentina()
+            else now_argentina().replace(tzinfo=None)
         )
 
         growth_record = GrowthRecord(

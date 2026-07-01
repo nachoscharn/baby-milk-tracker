@@ -693,7 +693,7 @@ def get_start_datetime(range_name: str) -> datetime:
 
     days = RANGE_DAYS[range_name]
 
-    return now_argentina() - timedelta(days=days)
+    return now_argentina().replace(tzinfo=None) - timedelta(days=days)
 
 
 # ---------------------------------------------------------------------------
