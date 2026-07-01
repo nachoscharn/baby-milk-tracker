@@ -186,10 +186,12 @@
                 Hoy
             </h2>
 
-            {% set bottle_max = 1000 %}
+            {% set bottle_max = recommended_ml if recommended_ml else 1000 %}
             {% set fill_pct = [today_ml / bottle_max, 1.0] | min %}
             {% set fill_height = (fill_pct * 72) | round | int %}
             {% set fill_y = 28 + (72 - fill_height) %}
+            {% set over_limit = today_ml > bottle_max %}
+            {% set fill_color = "#b05a2b" if over_limit else "#8b5a2b" %}
 
             <div class="bottle-row">
                 <svg class="bottle-svg" viewBox="0 0 60 120" xmlns="http://www.w3.org/2000/svg">
@@ -199,31 +201,42 @@
                         </clipPath>
                     </defs>
                     <!-- neck -->
-                    <rect x="22" y="6" width="16" height="22" rx="4" fill="none" stroke="#8b5a2b" stroke-width="2.5"/>
+                    <rect x="22" y="6" width="16" height="22" rx="4" fill="none" stroke="{{ fill_color }}" stroke-width="2.5"/>
                     <!-- body outline -->
-                    <rect x="8" y="28" width="44" height="82" rx="8" fill="none" stroke="#8b5a2b" stroke-width="2.5"/>
+                    <rect x="8" y="28" width="44" height="82" rx="8" fill="none" stroke="{{ fill_color }}" stroke-width="2.5"/>
                     <!-- fill -->
                     <rect
                         x="8" y="{{ fill_y }}"
                         width="44" height="{{ fill_height }}"
-                        rx="8" fill="#8b5a2b" opacity="0.25"
+                        rx="8" fill="{{ fill_color }}" opacity="0.3"
                         clip-path="url(#body-clip)"
                     />
-                    <!-- ml markers every 250ml -->
-                    {% for mark in [250, 500, 750] %}
-                        {% set mark_y = 28 + 72 - (mark / bottle_max * 72) | round | int %}
+                    <!-- recommended max marker -->
+                    <line x1="8" y1="28" x2="52" y2="28" stroke="{{ fill_color }}" stroke-width="1.5" opacity="0.6" stroke-dasharray="3,2"/>
+                    <!-- ml markers -->
+                    {% set step = (bottle_max / 4) | round | int %}
+                    {% for i in range(1, 4) %}
+                        {% set mark = step * i %}
+                        {% set mark_y = 28 + 72 - (i / 4 * 72) | round | int %}
                         <line x1="8" y1="{{ mark_y }}" x2="20" y2="{{ mark_y }}" stroke="#8b5a2b" stroke-width="1" opacity="0.4"/>
                         <text x="22" y="{{ mark_y + 4 }}" font-size="7" fill="#8b5a2b" opacity="0.5">{{ mark }}</text>
                     {% endfor %}
                 </svg>
 
                 <div class="bottle-info">
-                    <span class="bottle-ml">{{ today_ml }} ml</span>
+                    <span class="bottle-ml" style="color: {{ fill_color }};">{{ today_ml }} ml</span>
                     <span class="bottle-label">tomados hoy</span>
-                    {% if today_ml >= bottle_max %}
-                        <span class="bottle-label" style="color:#4a7c59; font-weight:600;">¡Meta alcanzada!</span>
+                    {% if over_limit %}
+                        <span class="bottle-label" style="color:#b05a2b; font-weight:600;">
+                            {{ today_ml - bottle_max }} ml sobre lo recomendado
+                        </span>
                     {% else %}
-                        <span class="bottle-label">{{ bottle_max - today_ml }} ml restantes</span>
+                        <span class="bottle-label">{{ bottle_max - today_ml }} ml hasta el límite recomendado</span>
+                    {% endif %}
+                    {% if recommended_ml %}
+                        <span class="bottle-label" style="color:#aaa; font-size:0.75rem;">
+                            Recomendado: {{ recommended_ml }} ml (150 ml/kg)
+                        </span>
                     {% endif %}
                 </div>
             </div>
