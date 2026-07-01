@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 </head>
 
 <body>
@@ -34,6 +36,10 @@
                 {{ baby_profile.first_name }} — curvas OMS ({{ baby_profile.sex | replace('female','niña') | replace('male','niño') }})
             </p>
         {% endif %}
+
+        <p style="font-size:0.8rem; color:#888; margin-top:0.25rem;">
+            Pellizcar para hacer zoom · doble click para resetear
+        </p>
     </div>
 
     <div class="card">
@@ -109,6 +115,21 @@
                     title: items => `Semana ${items[0].parsed.x}`,
                 },
             },
+            zoom: {
+                zoom: {
+                    wheel: { enabled: true },
+                    pinch: { enabled: true },
+                    mode: "xy",
+                },
+                pan: {
+                    enabled: true,
+                    mode: "xy",
+                },
+                limits: {
+                    x: { min: "original", max: "original" },
+                    y: { min: "original", max: "original" },
+                },
+            },
         },
         scales: {
             x: {
@@ -120,7 +141,7 @@
         },
     };
 
-    new Chart(document.getElementById("weightChart"), {
+    const weightChart = new Chart(document.getElementById("weightChart"), {
         type: "line",
         data: { datasets: buildDatasets(weightCurves, babyWeightData) },
         options: {
@@ -132,7 +153,7 @@
         },
     });
 
-    new Chart(document.getElementById("lengthChart"), {
+    const lengthChart = new Chart(document.getElementById("lengthChart"), {
         type: "line",
         data: { datasets: buildDatasets(lengthCurves, babyLengthData) },
         options: {
@@ -143,6 +164,9 @@
             },
         },
     });
+
+    document.getElementById("weightChart").addEventListener("dblclick", () => weightChart.resetZoom());
+    document.getElementById("lengthChart").addEventListener("dblclick", () => lengthChart.resetZoom());
 </script>
 
 </body>
