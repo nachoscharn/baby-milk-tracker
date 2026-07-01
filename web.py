@@ -330,6 +330,12 @@ def new_feeding():
 @app.route("/growth")
 @login_required
 def growth():
+    return redirect(url_for("growth_chart"))
+
+
+@app.route("/growth/history")
+@login_required
+def growth_history():
     baby_id = current_baby_id()
     records = get_growth_records(baby_id) if baby_id else []
     baby_profile = get_baby_for_user(session["user_id"])
@@ -358,7 +364,7 @@ def growth():
             record["formatted_age"] = from_baby_age(age_days) if age_days >= 0 else None
 
     return render_template(
-        "growth.html",
+        "growth_history.html",
         records=records,
         baby_profile=baby_profile,
     )
@@ -402,7 +408,7 @@ def new_growth():
 @login_required
 def delete_growth_record_route(growth_record_id: int):
     delete_growth_record(growth_record_id)
-    return redirect(url_for("growth"))
+    return redirect(url_for("growth_history"))
 
 
 @app.route("/growth/chart")

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta name="theme-color" content="#8b5a2b">
+
+    <link
+        rel="manifest"
+        href="{{ url_for('static', filename='manifest.json') }}"
+    >
+
+    <title>Crecimiento</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    >
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>
+            <i class="fa-solid fa-ruler"></i>
+            Crecimiento
+        </h1>
+
+        <div class="home-actions">
+
+            <a
+                class="button secondary-button"
+                href="{{ url_for('growth_chart') }}"
+            >
+                <i class="fa-solid fa-arrow-left"></i>
+                Volver al gráfico
+            </a>
+
+        </div>
+
+        {% if not records %}
+
+            <p>
+                Todavía no hay registros de crecimiento.
+            </p>
+
+        {% else %}
+
+            {% for record in records %}
+
+                <div class="history-item">
+                    <p>
+                        <strong>Fecha:</strong>
+                        {{ record.created_at.strftime("%d/%m/%Y %H:%M") }}
+                        {% if record.formatted_age %}
+                            — {{ record.formatted_age }}
+                        {% endif %}
+                    </p>
+
+                    {% if record.weight_kg is not none %}
+                    <p>
+                        <strong>Peso:</strong>
+                        {{ record.weight_kg }} kg
+                        {% if record.weight_percentile %}
+                            <span class="summary-percentile">P{{ record.weight_percentile }}</span>
+                        {% endif %}
+                    </p>
+                    {% endif %}
+
+                    {% if record.length_cm is not none %}
+                    <p>
+                        <strong>Largo/altura:</strong>
+                        {{ record.length_cm }} cm
+                        {% if record.length_percentile %}
+                            <span class="summary-percentile">P{{ record.length_percentile }}</span>
+                        {% endif %}
+                    </p>
+                    {% endif %}
+
+                    {% if record.head_circumference_cm %}
+
+                        <p>
+                            <strong>Perímetro cefálico:</strong>
+                            {{ record.head_circumference_cm }} cm
+                        </p>
+
+                    {% endif %}
+
+                    <form
+                        method="POST"
+                        action="/growth/{{ record.id }}/delete"
+                        onsubmit="return confirm('¿Seguro querés borrar este registro de crecimiento?');"
+                    >
+                        <button
+                            type="submit"
+                            class="delete-button"
+                        >
+                            Borrar
+                        </button>
+                    </form>
+
+                    </div>
+
+            {% endfor %}
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

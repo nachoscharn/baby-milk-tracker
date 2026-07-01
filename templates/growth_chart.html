@@ -97,9 +97,17 @@
         </h1>
 
         <div class="home-actions">
-            <a class="button secondary-button" href="{{ url_for('growth') }}">
+            <a class="button" href="{{ url_for('new_growth') }}">
+                <i class="fa-solid fa-plus"></i>
+                Registrar medición
+            </a>
+            <a class="button secondary-button" href="{{ url_for('growth_history') }}">
+                <i class="fa-solid fa-list"></i>
+                Historial
+            </a>
+            <a class="button secondary-button" href="{{ url_for('index') }}">
                 <i class="fa-solid fa-arrow-left"></i>
-                Volver
+                Inicio
             </a>
         </div>
 
