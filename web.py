@@ -30,6 +30,7 @@ from baby_milk_tracker.storage import (
     delete_growth_record,
     delete_medical_study,
     delete_pumping,
+    finish_feeding,
     get_all_feedings,
     get_all_pumpings,
     get_appointments,
@@ -232,6 +233,17 @@ def history():
         selected_range=range_name,
         settings=user_settings,
     )
+
+
+@app.route("/feeding/<int:feeding_id>/finish", methods=["POST"])
+@login_required
+def finish_feeding_route(feeding_id: int):
+    last = get_last_feeding(current_baby_id())
+    if last and last.id == feeding_id and last.duration_min is None:
+        elapsed = now_argentina().replace(tzinfo=None) - last.created_at
+        duration_min = max(1, int(elapsed.total_seconds() / 60))
+        finish_feeding(feeding_id, duration_min)
+    return redirect(url_for("index"))
 
 
 @app.route("/feeding/<int:feeding_id>/delete", methods=["POST"])

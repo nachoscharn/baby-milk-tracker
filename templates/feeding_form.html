@@ -62,7 +62,7 @@
 
             <div id="amount_field">
 
-                <label>ML:</label>
+                <label>Cantidad (ml):</label>
 
                 <input
                     type="number"
@@ -72,13 +72,22 @@
 
             </div>
 
-            <label>Duración en minutos (opcional):</label>
+            <div id="duration_field">
 
-            <input
-                type="number"
-                name="duration_min"
-                min="0"
-            >
+                <label>Duración en minutos (opcional):</label>
+
+                <input
+                    type="number"
+                    name="duration_min"
+                    min="0"
+                >
+
+                <p style="font-size:0.8rem; color:#888; margin: 4px 0 0 0;">
+                    Si estás registrando en tiempo real, podés dejarlo vacío
+                    y usar "Terminó la toma" en el inicio.
+                </p>
+
+            </div>
 
             <label>Fecha y hora manual (opcional):</label>
 
@@ -108,13 +117,16 @@
         const feedingType = document.getElementById("feeding_type").value;
         const sideField = document.getElementById("side_field");
         const amountField = document.getElementById("amount_field");
+        const durationField = document.getElementById("duration_field");
 
         if (feedingType === "breast") {
             sideField.style.display = "block";
             amountField.style.display = "none";
+            durationField.style.display = "block";
         } else {
             sideField.style.display = "none";
             amountField.style.display = "block";
+            durationField.style.display = "none";
         }
     }
 

@@ -10,6 +10,7 @@ class Feeding:
     side: str | None = None
     duration_min: int | None = None
     amount_ml: int | None = None
+    id: int | None = None
 
 
 @dataclass

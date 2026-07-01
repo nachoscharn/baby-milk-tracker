@@ -149,7 +149,7 @@ def get_last_feeding(baby_id: int) -> Feeding | None:
         cursor = conn.cursor()
         cursor.execute(
             f"""
-            SELECT created_at, feeding_type, side, duration_min, amount_ml
+            SELECT id, created_at, feeding_type, side, duration_min, amount_ml
             FROM feedings
             WHERE baby_id = {placeholder}
             ORDER BY created_at DESC
@@ -163,12 +163,25 @@ def get_last_feeding(baby_id: int) -> Feeding | None:
         return None
 
     return Feeding(
-        created_at=datetime.fromisoformat(row[0]),
-        feeding_type=row[1],
-        side=row[2],
-        duration_min=row[3],
-        amount_ml=row[4],
+        id=row[0],
+        created_at=datetime.fromisoformat(row[1]),
+        feeding_type=row[2],
+        side=row[3],
+        duration_min=row[4],
+        amount_ml=row[5],
     )
+
+
+def finish_feeding(feeding_id: int, duration_min: int) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"UPDATE feedings SET duration_min = {placeholder} WHERE id = {placeholder}",
+            (duration_min, feeding_id),
+        )
+        conn.commit()
 
 
 def get_feedings_since(start_datetime: datetime, baby_id: int) -> list[Feeding]:

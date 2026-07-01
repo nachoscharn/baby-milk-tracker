@@ -284,10 +284,19 @@
 
                     {% endif %}
 
-                    <p>
-                        <strong>Duración:</strong>
-                        {{ last_feeding.duration_min or "-" }} min
-                    </p>
+                    {% if last_feeding.duration_min is none %}
+                        <form method="POST" action="/feeding/{{ last_feeding.id }}/finish">
+                            <button type="submit" class="button" style="margin-top:8px;">
+                                <i class="fa-solid fa-circle-stop"></i>
+                                Terminó la toma
+                            </button>
+                        </form>
+                    {% else %}
+                        <p>
+                            <strong>Duración:</strong>
+                            {{ last_feeding.duration_min }} min
+                        </p>
+                    {% endif %}
 
                 {% else %}
 
@@ -299,11 +308,6 @@
                     <p>
                         <strong>Cantidad:</strong>
                         {{ last_feeding.amount_ml }} ml
-                    </p>
-
-                    <p>
-                        <strong>Duración:</strong>
-                        {{ last_feeding.duration_min or "-" }} min
                     </p>
 
                 {% endif %}
