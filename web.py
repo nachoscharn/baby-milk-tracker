@@ -133,14 +133,16 @@ def index():
     percentile_status = None
 
     if baby_profile and last_growth_record and baby_age_days is not None:
-        weight_percentile = get_weight_percentile(
-            baby_profile,
-            last_growth_record,
+        weight_percentile = (
+            get_weight_percentile(baby_profile, last_growth_record)
+            if last_growth_record.weight_kg is not None
+            else None
         )
 
-        length_percentile = get_length_percentile(
-            baby_profile,
-            last_growth_record,
+        length_percentile = (
+            get_length_percentile(baby_profile, last_growth_record)
+            if last_growth_record.length_cm is not None
+            else None
         )
 
         last_growth_age_days = (
@@ -340,11 +342,15 @@ def growth():
                 length_cm=record["length_cm"],
                 head_circumference_cm=record["head_circumference_cm"],
             )
-            record["weight_percentile"] = get_weight_percentile(
-                baby_profile, growth_record
+            record["weight_percentile"] = (
+                get_weight_percentile(baby_profile, growth_record)
+                if growth_record.weight_kg is not None
+                else None
             )
-            record["length_percentile"] = get_length_percentile(
-                baby_profile, growth_record
+            record["length_percentile"] = (
+                get_length_percentile(baby_profile, growth_record)
+                if growth_record.length_cm is not None
+                else None
             )
             age_days = (
                 growth_record.created_at.date() - baby_profile.birth_date.date()
@@ -375,10 +381,13 @@ def new_growth():
             else now_argentina().replace(tzinfo=None)
         )
 
+        weight_kg_raw = request.form.get("weight_kg")
+        length_cm_raw = request.form.get("length_cm")
+
         growth_record = GrowthRecord(
             created_at=created_at,
-            weight_kg=float(request.form["weight_kg"]),
-            length_cm=float(request.form["length_cm"]),
+            weight_kg=float(weight_kg_raw) if weight_kg_raw else None,
+            length_cm=float(length_cm_raw) if length_cm_raw else None,
             head_circumference_cm=(
                 float(head_circumference_cm) if head_circumference_cm else None
             ),
@@ -416,8 +425,10 @@ def growth_chart():
         age_days = (record["created_at"].date() - baby_profile.birth_date.date()).days
         if age_days >= 0:
             age_weeks = round(age_days / 7, 1)
-            baby_weight_data.append({"x": age_weeks, "y": record["weight_kg"]})
-            baby_length_data.append({"x": age_weeks, "y": record["length_cm"]})
+            if record["weight_kg"] is not None:
+                baby_weight_data.append({"x": age_weeks, "y": record["weight_kg"]})
+            if record["length_cm"] is not None:
+                baby_length_data.append({"x": age_weeks, "y": record["length_cm"]})
 
     baby_weight_data.sort(key=lambda p: p["x"])
     baby_length_data.sort(key=lambda p: p["x"])

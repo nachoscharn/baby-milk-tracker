@@ -12,6 +12,78 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+    <style>
+        .chart-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .chart-tab {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #c9a87a;
+            border-radius: 12px;
+            background: transparent;
+            color: #8b5a2b;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .chart-tab.active {
+            background: #8b5a2b;
+            color: #fff;
+            border-color: #8b5a2b;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 380px;
+        }
+
+        .chart-hint {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #aaa;
+            margin-top: 10px;
+        }
+
+        .chart-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chart-meta-name {
+            font-weight: 600;
+            color: #8b5a2b;
+            font-size: 1rem;
+        }
+
+        .chart-meta-sub {
+            font-size: 0.82rem;
+            color: #9a806a;
+        }
+
+        .reset-zoom-btn {
+            padding: 6px 14px;
+            border: 1px solid #c9a87a;
+            border-radius: 8px;
+            background: transparent;
+            color: #8b5a2b;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .reset-zoom-btn:hover {
+            background: #f0e6d8;
+        }
+    </style>
 </head>
 
 <body>
@@ -21,7 +93,7 @@
     <div class="card">
         <h1>
             <i class="fa-solid fa-chart-line"></i>
-            Gráfico de crecimiento
+            Crecimiento
         </h1>
 
         <div class="home-actions">
@@ -31,72 +103,84 @@
             </a>
         </div>
 
-        {% if baby_profile %}
-            <p class="baby-age">
-                {{ baby_profile.first_name }} — curvas OMS ({{ baby_profile.sex | replace('female','niña') | replace('male','niño') }})
-            </p>
-        {% endif %}
+        <div class="chart-meta">
+            <div>
+                {% if baby_profile %}
+                <span class="chart-meta-name">{{ baby_profile.first_name }}</span>
+                <span class="chart-meta-sub">
+                    vs. curvas OMS ({{ baby_profile.sex | replace('female','niña') | replace('male','niño') }})
+                </span>
+                {% endif %}
+            </div>
+            <button class="reset-zoom-btn" id="resetZoomBtn">
+                <i class="fa-solid fa-magnifying-glass-minus"></i>
+                Resetear zoom
+            </button>
+        </div>
 
-        <p style="font-size:0.8rem; color:#888; margin-top:0.25rem;">
-            Pellizcar para hacer zoom · doble click para resetear
+        <div class="chart-tabs">
+            <button class="chart-tab active" id="tabWeight" onclick="showChart('weight')">
+                <i class="fa-solid fa-weight-scale"></i>
+                Peso (kg)
+            </button>
+            <button class="chart-tab" id="tabLength" onclick="showChart('length')">
+                <i class="fa-solid fa-ruler-vertical"></i>
+                Largo / altura (cm)
+            </button>
+        </div>
+
+        <div class="chart-wrapper">
+            <canvas id="weightChart"></canvas>
+            <canvas id="lengthChart" style="display:none;"></canvas>
+        </div>
+
+        <p class="chart-hint">
+            Pellizcar para zoom · arrastrar para mover · doble click para resetear
         </p>
-    </div>
 
-    <div class="card">
-        <h2>
-            <i class="fa-solid fa-weight-scale"></i>
-            Peso (kg)
-        </h2>
-        <canvas id="weightChart"></canvas>
-    </div>
-
-    <div class="card">
-        <h2>
-            <i class="fa-solid fa-ruler-vertical"></i>
-            Largo / altura (cm)
-        </h2>
-        <canvas id="lengthChart"></canvas>
     </div>
 
 </div>
 
 <script>
-    const percentileColors = {
-        3:  { border: "rgba(180,180,210,0.7)", bg: "rgba(180,180,210,0.07)" },
-        15: { border: "rgba(120,160,220,0.7)", bg: "rgba(120,160,220,0.07)" },
-        50: { border: "rgba(80,140,80,0.85)",  bg: "rgba(80,140,80,0.07)"  },
-        85: { border: "rgba(120,160,220,0.7)", bg: "rgba(120,160,220,0.07)" },
-        97: { border: "rgba(180,180,210,0.7)", bg: "rgba(180,180,210,0.07)" },
+    const BABY_NAME = "{{ baby_profile.first_name if baby_profile else 'Bebé' }}";
+
+    const CURVE_STYLES = {
+        3:  { color: "rgba(180,180,210,0.6)", dash: [5, 4] },
+        15: { color: "rgba(100,150,210,0.65)", dash: [5, 4] },
+        50: { color: "rgba(60,140,80,0.9)",   dash: [] },
+        85: { color: "rgba(100,150,210,0.65)", dash: [5, 4] },
+        97: { color: "rgba(180,180,210,0.6)", dash: [5, 4] },
     };
 
-    const percentiles = {{ percentiles | tojson }};
+    const percentiles  = {{ percentiles | tojson }};
     const weightCurves = {{ weight_curves | tojson }};
     const lengthCurves = {{ length_curves | tojson }};
-    const babyWeightData = {{ baby_weight_data | tojson }};
-    const babyLengthData = {{ baby_length_data | tojson }};
+    const babyWeight   = {{ baby_weight_data | tojson }};
+    const babyLength   = {{ baby_length_data | tojson }};
 
-    function buildDatasets(curves, babyData) {
+    function buildDatasets(curves, babyData, unit) {
         const datasets = percentiles.map(p => ({
             label: `P${p}`,
             data: curves[p],
-            borderColor: percentileColors[p].border,
-            backgroundColor: percentileColors[p].bg,
-            borderWidth: p === 50 ? 2 : 1,
-            borderDash: p === 50 ? [] : [4, 3],
+            borderColor: CURVE_STYLES[p].color,
+            borderDash: CURVE_STYLES[p].dash,
+            borderWidth: p === 50 ? 2.5 : 1.5,
             pointRadius: 0,
             fill: false,
-            tension: 0.3,
+            tension: 0.35,
             order: 2,
         }));
 
         datasets.push({
-            label: "{{ baby_profile.first_name if baby_profile else 'Bebé' }}",
+            label: BABY_NAME,
             data: babyData,
-            borderColor: "rgba(180,80,40,1)",
-            backgroundColor: "rgba(180,80,40,0.85)",
+            borderColor: "rgba(160,60,30,1)",
+            backgroundColor: "rgba(160,60,30,0.9)",
             borderWidth: 2.5,
-            pointRadius: 5,
-            pointHoverRadius: 7,
+            pointRadius: 6,
+            pointHoverRadius: 9,
+            pointStyle: "circle",
             fill: false,
             tension: 0.2,
             order: 1,
@@ -105,66 +189,101 @@
         return datasets;
     }
 
-    const commonOptions = {
-        responsive: true,
-        interaction: { mode: "index", intersect: false },
-        plugins: {
-            legend: { position: "bottom" },
-            tooltip: {
-                callbacks: {
-                    title: items => `Semana ${items[0].parsed.x}`,
-                },
-            },
-            zoom: {
-                zoom: {
-                    wheel: { enabled: true },
-                    pinch: { enabled: true },
-                    mode: "xy",
-                },
-                pan: {
-                    enabled: true,
-                    mode: "xy",
-                },
-                limits: {
-                    x: { min: "original", max: "original" },
-                    y: { min: "original", max: "original" },
-                },
-            },
+    const zoomPlugin = {
+        zoom: {
+            wheel: { enabled: true },
+            pinch: { enabled: true },
+            mode: "xy",
         },
-        scales: {
-            x: {
-                type: "linear",
-                title: { display: true, text: "Semanas de vida" },
-                ticks: { stepSize: 4 },
-            },
-            y: { title: { display: true, text: "" } },
+        pan: {
+            enabled: true,
+            mode: "xy",
+        },
+        limits: {
+            x: { min: "original", max: "original" },
+            y: { min: "original", max: "original" },
         },
     };
 
+    function makeOptions(yLabel) {
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: "index", intersect: false },
+            plugins: {
+                legend: {
+                    position: "bottom",
+                    labels: {
+                        usePointStyle: true,
+                        padding: 16,
+                        font: { size: 12 },
+                        filter: item => item.text === BABY_NAME || ["P3","P50","P97"].includes(item.text),
+                    },
+                },
+                tooltip: {
+                    callbacks: {
+                        title: items => {
+                            const w = items[0].parsed.x;
+                            const weeks = Math.floor(w);
+                            const days = Math.round((w % 1) * 7);
+                            return days > 0 ? `Semana ${weeks} + ${days} días` : `Semana ${weeks}`;
+                        },
+                    },
+                },
+                zoom: zoomPlugin,
+            },
+            scales: {
+                x: {
+                    type: "linear",
+                    title: { display: true, text: "Semanas de vida", color: "#8b5a2b" },
+                    ticks: { stepSize: 4, color: "#9a806a" },
+                    grid: { color: "rgba(0,0,0,0.05)" },
+                },
+                y: {
+                    title: { display: true, text: yLabel, color: "#8b5a2b" },
+                    ticks: { color: "#9a806a" },
+                    grid: { color: "rgba(0,0,0,0.05)" },
+                },
+            },
+        };
+    }
+
     const weightChart = new Chart(document.getElementById("weightChart"), {
         type: "line",
-        data: { datasets: buildDatasets(weightCurves, babyWeightData) },
-        options: {
-            ...commonOptions,
-            scales: {
-                ...commonOptions.scales,
-                y: { title: { display: true, text: "kg" } },
-            },
-        },
+        data: { datasets: buildDatasets(weightCurves, babyWeight, "kg") },
+        options: makeOptions("kg"),
     });
 
     const lengthChart = new Chart(document.getElementById("lengthChart"), {
         type: "line",
-        data: { datasets: buildDatasets(lengthCurves, babyLengthData) },
-        options: {
-            ...commonOptions,
-            scales: {
-                ...commonOptions.scales,
-                y: { title: { display: true, text: "cm" } },
-            },
-        },
+        data: { datasets: buildDatasets(lengthCurves, babyLength, "cm") },
+        options: makeOptions("cm"),
     });
 
+    let activeChart = weightChart;
+
+    function showChart(type) {
+        const wCanvas = document.getElementById("weightChart");
+        const lCanvas = document.getElementById("lengthChart");
+        const tabW = document.getElementById("tabWeight");
+        const tabL = document.getElementById("tabLength");
+
+        if (type === "weight") {
+            wCanvas.style.display = "block";
+            lCanvas.style.display = "none";
+            tabW.classList.add("active");
+            tabL.classList.remove("active");
+            activeChart = weightChart;
+        } else {
+            wCanvas.style.display = "none";
+            lCanvas.style.display = "block";
+            tabW.classList.remove("active");
+            tabL.classList.add("active");
+            activeChart = lengthChart;
+        }
+    }
+
+    document.getElementById("resetZoomBtn").addEventListener("click", () => activeChart.resetZoom());
     document.getElementById("weightChart").addEventListener("dblclick", () => weightChart.resetZoom());
     document.getElementById("lengthChart").addEventListener("dblclick", () => lengthChart.resetZoom());
 </script>

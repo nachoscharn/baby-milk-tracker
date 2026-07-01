@@ -23,9 +23,10 @@ class Pumping:
 @dataclass
 class GrowthRecord:
     created_at: datetime
-    weight_kg: float
-    length_cm: float
+    weight_kg: float | None = None
+    length_cm: float | None = None
     head_circumference_cm: float | None = None
+    id: int | None = None
 
 
 @dataclass

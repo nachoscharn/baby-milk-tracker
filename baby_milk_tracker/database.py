@@ -177,6 +177,41 @@ def init_db() -> None:
         _add_column_if_not_exists(cursor, "pumpings", "baby_id", "INTEGER")
         _add_column_if_not_exists(cursor, "growth_records", "baby_id", "INTEGER")
 
+        # Make weight_kg and length_cm nullable to support partial measurements
+        if DATABASE_URL:
+            for col in ("weight_kg", "length_cm"):
+                try:
+                    cursor.execute(
+                        f"ALTER TABLE growth_records ALTER COLUMN {col} DROP NOT NULL"
+                    )
+                except Exception:
+                    pass
+        else:
+            cursor.execute("PRAGMA table_info(growth_records)")
+            cols = {r[1]: r[3] for r in cursor.fetchall()}
+            if cols.get("weight_kg") == 1 or cols.get("length_cm") == 1:
+                cursor.execute(
+                    """
+                    CREATE TABLE growth_records_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        created_at TEXT NOT NULL,
+                        weight_kg REAL,
+                        length_cm REAL,
+                        head_circumference_cm REAL,
+                        baby_id INTEGER
+                    )
+                """
+                )
+                cursor.execute(
+                    "INSERT INTO growth_records_new "
+                    "SELECT id, created_at, weight_kg, length_cm, head_circumference_cm, baby_id "
+                    "FROM growth_records"
+                )
+                cursor.execute("DROP TABLE growth_records")
+                cursor.execute(
+                    "ALTER TABLE growth_records_new RENAME TO growth_records"
+                )
+
         # Add daily_ml_target to user_settings (NULL = use weight formula)
         _add_column_if_not_exists(cursor, "user_settings", "daily_ml_target", "INTEGER")
 
