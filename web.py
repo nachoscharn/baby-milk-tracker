@@ -413,7 +413,7 @@ def growth_chart():
 def appointments():
     baby_id = current_baby_id()
     items = get_appointments(baby_id) if baby_id else []
-    now = now_argentina()
+    now = now_argentina().replace(tzinfo=None)
     return render_template("appointments.html", appointments=items, now=now)
 
 
