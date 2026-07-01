@@ -178,6 +178,59 @@
 
         </div>
 
+        {% if baby_id %}
+        <div class="card bottle-card">
+
+            <h2>
+                <i class="fa-solid fa-bottle-water"></i>
+                Hoy
+            </h2>
+
+            {% set bottle_max = 1000 %}
+            {% set fill_pct = [today_ml / bottle_max, 1.0] | min %}
+            {% set fill_height = (fill_pct * 72) | round | int %}
+            {% set fill_y = 28 + (72 - fill_height) %}
+
+            <div class="bottle-row">
+                <svg class="bottle-svg" viewBox="0 0 60 120" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <clipPath id="body-clip">
+                            <rect x="8" y="28" width="44" height="82" rx="8"/>
+                        </clipPath>
+                    </defs>
+                    <!-- neck -->
+                    <rect x="22" y="6" width="16" height="22" rx="4" fill="none" stroke="#8b5a2b" stroke-width="2.5"/>
+                    <!-- body outline -->
+                    <rect x="8" y="28" width="44" height="82" rx="8" fill="none" stroke="#8b5a2b" stroke-width="2.5"/>
+                    <!-- fill -->
+                    <rect
+                        x="8" y="{{ fill_y }}"
+                        width="44" height="{{ fill_height }}"
+                        rx="8" fill="#8b5a2b" opacity="0.25"
+                        clip-path="url(#body-clip)"
+                    />
+                    <!-- ml markers every 250ml -->
+                    {% for mark in [250, 500, 750] %}
+                        {% set mark_y = 28 + 72 - (mark / bottle_max * 72) | round | int %}
+                        <line x1="8" y1="{{ mark_y }}" x2="20" y2="{{ mark_y }}" stroke="#8b5a2b" stroke-width="1" opacity="0.4"/>
+                        <text x="22" y="{{ mark_y + 4 }}" font-size="7" fill="#8b5a2b" opacity="0.5">{{ mark }}</text>
+                    {% endfor %}
+                </svg>
+
+                <div class="bottle-info">
+                    <span class="bottle-ml">{{ today_ml }} ml</span>
+                    <span class="bottle-label">tomados hoy</span>
+                    {% if today_ml >= bottle_max %}
+                        <span class="bottle-label" style="color:#4a7c59; font-weight:600;">¡Meta alcanzada!</span>
+                    {% else %}
+                        <span class="bottle-label">{{ bottle_max - today_ml }} ml restantes</span>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+        {% endif %}
+
         <div class="card">
 
             <h2>

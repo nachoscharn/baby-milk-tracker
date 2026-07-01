@@ -591,3 +591,31 @@ textarea {
     width: 18px;
     text-align: center;
 }
+.bottle-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.bottle-svg {
+    width: 70px;
+    flex-shrink: 0;
+}
+
+.bottle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bottle-ml {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #8b5a2b;
+    line-height: 1;
+}
+
+.bottle-label {
+    font-size: 0.85rem;
+    color: #7a6555;
+}

@@ -104,6 +104,14 @@ def index():
     last_growth_record = get_last_growth_record(baby_id) if baby_id else None
     next_appointment = get_next_appointment(baby_id) if baby_id else None
 
+    today_ml = 0
+    if baby_id:
+        today_start = now_argentina().replace(
+            hour=0, minute=0, second=0, microsecond=0, tzinfo=None
+        )
+        today_feedings = get_feedings_since(today_start, baby_id)
+        today_ml = sum(f.amount_ml for f in today_feedings if f.amount_ml)
+
     baby_age_days = None
     formatted_baby_age = None
 
@@ -157,6 +165,8 @@ def index():
         formatted_last_growth_age=formatted_last_growth_age,
         next_appointment=next_appointment,
         settings=settings,
+        today_ml=today_ml,
+        baby_id=baby_id,
     )
 
 
