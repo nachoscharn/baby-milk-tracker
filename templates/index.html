@@ -235,7 +235,8 @@
                     {% endif %}
                     {% if recommended_ml %}
                         <span class="bottle-label" style="color:#aaa; font-size:0.75rem;">
-                            Recomendado: {{ recommended_ml }} ml (150 ml/kg)
+                            Límite: {{ recommended_ml }} ml
+                            {% if not settings.daily_ml_target %}(200 ml/kg){% endif %}
                         </span>
                     {% endif %}
                 </div>

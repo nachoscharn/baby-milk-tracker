@@ -41,6 +41,21 @@
                 Activa tomas a pecho y registro de extracciones
             </p>
 
+            <p class="settings-section-title" style="margin-top: 20px;">Tomas diarias</p>
+
+            <label>Objetivo de ml diarios (opcional):</label>
+            <input
+                type="number"
+                name="daily_ml_target"
+                min="0"
+                placeholder="Calculado por peso (200 ml/kg)"
+                value="{{ settings.daily_ml_target if settings.daily_ml_target else '' }}"
+            >
+            <p style="font-size:0.8rem; color:#888; margin: 4px 0 0 0;">
+                Si lo dejás vacío se calcula con el último peso registrado (200 ml/kg).
+                Borrá el valor para volver al cálculo automático.
+            </p>
+
             <button type="submit" style="margin-top: 24px;">
                 Guardar
             </button>

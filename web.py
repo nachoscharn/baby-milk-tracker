@@ -113,8 +113,10 @@ def index():
         )
         today_feedings = get_feedings_since(today_start, baby_id)
         today_ml = sum(f.amount_ml for f in today_feedings if f.amount_ml)
-        if last_growth_record:
-            recommended_ml = int(last_growth_record.weight_kg * 150)
+        if settings.get("daily_ml_target"):
+            recommended_ml = settings["daily_ml_target"]
+        elif last_growth_record:
+            recommended_ml = int(last_growth_record.weight_kg * 200)
 
     baby_age_days = None
     formatted_baby_age = None

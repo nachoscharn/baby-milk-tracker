@@ -177,4 +177,7 @@ def init_db() -> None:
         _add_column_if_not_exists(cursor, "pumpings", "baby_id", "INTEGER")
         _add_column_if_not_exists(cursor, "growth_records", "baby_id", "INTEGER")
 
+        # Add daily_ml_target to user_settings (NULL = use weight formula)
+        _add_column_if_not_exists(cursor, "user_settings", "daily_ml_target", "INTEGER")
+
         conn.commit()

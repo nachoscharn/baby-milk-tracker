@@ -647,7 +647,7 @@ def delete_medical_study(study_id: int) -> None:
 # User settings
 # ---------------------------------------------------------------------------
 
-_DEFAULTS = {"show_pumpings": True}
+_DEFAULTS = {"show_pumpings": True, "daily_ml_target": None}
 
 
 def get_user_settings(user_id: int) -> dict:
@@ -656,7 +656,7 @@ def get_user_settings(user_id: int) -> dict:
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
-            f"SELECT show_pumpings FROM user_settings WHERE user_id = {placeholder}",
+            f"SELECT show_pumpings, daily_ml_target FROM user_settings WHERE user_id = {placeholder}",
             (user_id,),
         )
         row = cursor.fetchone()
@@ -664,7 +664,10 @@ def get_user_settings(user_id: int) -> dict:
     if row is None:
         return dict(_DEFAULTS)
 
-    return {"show_pumpings": bool(row[0])}
+    return {
+        "show_pumpings": bool(row[0]),
+        "daily_ml_target": row[1],
+    }
 
 
 def save_user_settings(user_id: int, settings: dict) -> None:
@@ -672,25 +675,30 @@ def save_user_settings(user_id: int, settings: dict) -> None:
 
     placeholder = get_placeholder()
     show_pumpings = int(settings.get("show_pumpings", True))
+    daily_ml_target = settings.get("daily_ml_target") or None
+    if daily_ml_target is not None:
+        daily_ml_target = int(daily_ml_target)
 
     with get_connection() as conn:
         cursor = conn.cursor()
         if DATABASE_URL:
             cursor.execute(
                 f"""
-                INSERT INTO user_settings (user_id, show_pumpings)
-                VALUES ({placeholder}, {placeholder})
-                ON CONFLICT (user_id) DO UPDATE SET show_pumpings = EXCLUDED.show_pumpings
+                INSERT INTO user_settings (user_id, show_pumpings, daily_ml_target)
+                VALUES ({placeholder}, {placeholder}, {placeholder})
+                ON CONFLICT (user_id) DO UPDATE
+                SET show_pumpings = EXCLUDED.show_pumpings,
+                    daily_ml_target = EXCLUDED.daily_ml_target
                 """,
-                (user_id, show_pumpings),
+                (user_id, show_pumpings, daily_ml_target),
             )
         else:
             cursor.execute(
                 f"""
-                INSERT OR REPLACE INTO user_settings (user_id, show_pumpings)
-                VALUES ({placeholder}, {placeholder})
+                INSERT OR REPLACE INTO user_settings (user_id, show_pumpings, daily_ml_target)
+                VALUES ({placeholder}, {placeholder}, {placeholder})
                 """,
-                (user_id, show_pumpings),
+                (user_id, show_pumpings, daily_ml_target),
             )
         conn.commit()
 
