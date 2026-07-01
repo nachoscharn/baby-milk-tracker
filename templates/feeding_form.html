@@ -37,12 +37,16 @@
 
         <form method="POST">
 
+            {% if settings.show_pumpings %}
             <label>Tipo:</label>
 
             <select name="feeding_type" id="feeding_type">
                 <option value="breast">Pecho</option>
                 <option value="bottle">Mamadera</option>
             </select>
+            {% else %}
+            <input type="hidden" name="feeding_type" id="feeding_type" value="bottle">
+            {% endif %}
 
             <div id="side_field">
 

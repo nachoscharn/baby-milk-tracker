@@ -293,7 +293,8 @@ def new_feeding():
         save_feeding(feeding, baby_id)
         return redirect("/")
 
-    return render_template("feeding_form.html")
+    settings = get_user_settings(session["user_id"])
+    return render_template("feeding_form.html", settings=settings)
 
 
 @app.route("/growth")
