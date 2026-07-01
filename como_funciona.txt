@@ -1,0 +1,130 @@
+BABY MILK TRACKER — CÓMO FUNCIONA
+==================================
+
+DESCRIPCIÓN GENERAL
+-------------------
+Aplicación web para registrar el seguimiento de un bebé: tomas de leche,
+extracciones, crecimiento, turnos médicos y estudios realizados.
+Pensada para uso familiar con login por usuario.
+
+
+TECNOLOGÍAS
+-----------
+- Backend:    Python 3 + Flask + Gunicorn
+- Base de datos local (dev): SQLite  (data/baby_milk_tracker.db)
+- Base de datos producción:  Supabase (PostgreSQL)
+- Frontend:   HTML + CSS + Jinja2 (sin framework JS pesado)
+- Gráficos:   Chart.js (CDN)
+- Deploy:     Render (web service)
+- Hosting DB: Supabase (Transaction pooler, puerto 6543)
+
+
+FLUJO DE USO
+------------
+1. El usuario se registra / inicia sesión.
+2. Crea el perfil del bebé (nombre, apellido, fecha de nacimiento, sexo).
+3. Desde el home puede:
+   - Registrar una toma (pecho o mamadera)
+   - Registrar una extracción (si está habilitada en configuración)
+   - Ver el historial filtrando por día / semana / mes / todo
+   - Ver el próximo turno médico programado
+4. Desde el menú hamburguesa accede a:
+   - Crecimiento: registra peso, largo y perímetro cefálico con percentil OMS
+   - Turnos médicos: agenda de turnos con especialidad y dirección
+   - Estudios realizados: registro de análisis con resultado y médico
+   - Configuración: activa/desactiva la sección de extracciones
+5. En crecimiento puede ver un gráfico comparando los datos del bebé
+   contra las curvas de referencia OMS (P3, P15, P50, P85, P97).
+
+
+MÓDULOS DEL PROYECTO
+--------------------
+
+web.py
+  Punto de entrada. Define todas las rutas HTTP (Flask).
+  Orquesta las llamadas entre el storage, los modelos y los templates.
+
+baby_milk_tracker/auth.py
+  Registro y verificación de usuarios con contraseña hasheada (werkzeug).
+
+baby_milk_tracker/database.py
+  Inicialización de la base de datos. Crea todas las tablas si no existen.
+  Detecta automáticamente si usa SQLite o PostgreSQL por la variable DATABASE_URL.
+
+baby_milk_tracker/migrations.py
+  Aplica cambios de esquema sobre bases de datos ya existentes (ALTER TABLE).
+  Se ejecuta en cada arranque, de forma segura (idempotente).
+
+baby_milk_tracker/models.py
+  Dataclasses Python: BabyProfile, Feeding, Pumping, GrowthRecord,
+  Appointment, MedicalStudy. Representan las entidades del dominio.
+
+baby_milk_tracker/storage.py
+  Todas las queries SQL (CRUD). Abstrae las diferencias entre
+  SQLite (placeholder ?) y PostgreSQL (placeholder %s).
+
+baby_milk_tracker/percentiles.py
+  Tablas de referencia OMS de peso y longitud (0-2 años, niño y niña).
+  Interpola por semana (0-13 semanas) y por mes (3 meses-2 años).
+  Calcula el percentil del bebé y genera las curvas para el gráfico.
+
+baby_milk_tracker/time_utils.py
+  Helpers de zona horaria Argentina (America/Argentina/Buenos_Aires).
+  Convierte edades en días a texto legible (ej: "2 meses y 3 días").
+
+templates/
+  16 templates HTML con Jinja2. Cada sección tiene su vista y formulario.
+
+static/
+  style.css, íconos, manifest.json y service-worker.js (PWA básica).
+
+scripts/
+  Utilitarios de administración para correr desde la terminal:
+  - create_user.py:    crea un usuario nuevo en la DB
+  - copy_db.py:        copia datos de SQLite a Supabase
+  - fix_baby_link.py:  repara el vínculo usuario-bebé si quedó roto
+
+tests/
+  Tests con pytest. Cubre percentiles OMS y utilidades de tiempo.
+
+
+BASE DE DATOS — TABLAS
+-----------------------
+  users            → id, username, password_hash
+  babies           → id, user_id, first_name, last_name, birth_date, sex
+  feedings         → id, baby_id, created_at, feeding_type, side, duration_min, amount_ml
+  pumpings         → id, baby_id, created_at, amount_ml, side
+  growth_records   → id, baby_id, created_at, weight_kg, length_cm, head_circumference_cm
+  appointments     → id, baby_id, appointment_datetime, doctor_specialty, location
+  medical_studies  → id, baby_id, study_date, study_type, result, doctor
+  user_settings    → user_id (PK), show_pumpings
+
+
+VARIABLES DE ENTORNO
+--------------------
+  DATABASE_URL   URL de conexión a PostgreSQL (Supabase Transaction pooler).
+                 Si no está definida, usa SQLite local.
+  SECRET_KEY     Clave para firmar la sesión de Flask.
+
+
+DEPLOY EN RENDER
+----------------
+  - Rama main → producción (auto-deploy en cada push)
+  - Start command: gunicorn web:app
+  - DATABASE_URL apunta al Transaction pooler de Supabase (puerto 6543)
+
+
+DESARROLLO LOCAL
+----------------
+  python -m venv .venv && source .venv/bin/activate
+  pip install -r requirements.txt
+  python web.py          # inicia en http://localhost:5000
+  pytest                 # corre los tests
+
+
+POSIBLES MEJORAS FUTURAS
+------------------------
+  - Soporte multi-bebé por usuario (la DB ya lo permite, falta la UI)
+  - Vacunas / carnet de salud
+  - Exportar datos a PDF o CSV
+  - Notificaciones de próximos turnos
