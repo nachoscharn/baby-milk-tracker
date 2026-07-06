@@ -1,7 +1,7 @@
 {
-    "name": "Registro de leche",
-    "short_name": "Leche",
-    "description": "Registro de lactancia y extracción",
+    "name": "BBer",
+    "short_name": "BBer",
+    "description": "Registro de tomas y crecimiento",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",

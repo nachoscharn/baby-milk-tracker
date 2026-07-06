@@ -13,7 +13,7 @@
             content="width=device-width, initial-scale=1.0"
         >
 
-        <title>Baby Milk Tracker</title>
+        <title>BBer</title>
 
         <link
             rel="stylesheet"
@@ -34,7 +34,7 @@
         
                 <div class="header-row">
 
-                    <h1>Baby Milk Tracker</h1>
+                    <h1>BBer</h1>
 
                     <div class="hamburger-menu">
                         <button class="hamburger-btn" id="menuBtn" aria-label="Menú">
@@ -111,41 +111,45 @@
             
                         <div class="growth-summary-grid">
             
+                            {% if last_growth_record.weight_kg is not none %}
                             <div class="growth-summary-card">
-            
+
                                 <span class="summary-label">
                                     Peso
                                 </span>
-            
+
                                 <strong>
                                     {{ last_growth_record.weight_kg }} kg
                                 </strong>
-            
+
                                 {% if weight_percentile %}
                                     <span class="summary-percentile">
                                         Percentil {{ weight_percentile }}
                                     </span>
                                 {% endif %}
-            
+
                             </div>
-            
+                        {% endif %}
+
+                        {% if last_growth_record.length_cm is not none %}
                             <div class="growth-summary-card">
-            
+
                                 <span class="summary-label">
                                     Largo
                                 </span>
-            
+
                                 <strong>
                                     {{ last_growth_record.length_cm }} cm
                                 </strong>
-            
+
                                 {% if length_percentile %}
                                     <span class="summary-percentile">
                                         Percentil {{ length_percentile }}
                                     </span>
                                 {% endif %}
-            
+
                             </div>
+                        {% endif %}
             
                         </div>
             
