@@ -18,6 +18,7 @@ class Pumping:
     created_at: datetime
     amount_ml: int
     side: str | None = None
+    id: int | None = None
 
 
 @dataclass

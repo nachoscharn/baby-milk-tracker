@@ -191,7 +191,7 @@ def get_feedings_since(start_datetime: datetime, baby_id: int) -> list[Feeding]:
         cursor = conn.cursor()
         cursor.execute(
             f"""
-            SELECT created_at, feeding_type, side, duration_min, amount_ml
+            SELECT id, created_at, feeding_type, side, duration_min, amount_ml
             FROM feedings
             WHERE created_at >= {placeholder} AND baby_id = {placeholder}
             ORDER BY created_at DESC
@@ -202,11 +202,12 @@ def get_feedings_since(start_datetime: datetime, baby_id: int) -> list[Feeding]:
 
     return [
         Feeding(
-            created_at=datetime.fromisoformat(row[0]),
-            feeding_type=row[1],
-            side=row[2],
-            duration_min=row[3],
-            amount_ml=row[4],
+            id=row[0],
+            created_at=datetime.fromisoformat(row[1]),
+            feeding_type=row[2],
+            side=row[3],
+            duration_min=row[4],
+            amount_ml=row[5],
         )
         for row in rows
     ]
@@ -312,7 +313,7 @@ def get_pumpings_since(start_datetime: datetime, baby_id: int) -> list[Pumping]:
         cursor = conn.cursor()
         cursor.execute(
             f"""
-            SELECT created_at, amount_ml, side
+            SELECT id, created_at, amount_ml, side
             FROM pumpings
             WHERE created_at >= {placeholder} AND baby_id = {placeholder}
             ORDER BY created_at DESC
@@ -323,9 +324,10 @@ def get_pumpings_since(start_datetime: datetime, baby_id: int) -> list[Pumping]:
 
     return [
         Pumping(
-            created_at=datetime.fromisoformat(row[0]),
-            amount_ml=row[1],
-            side=row[2],
+            id=row[0],
+            created_at=datetime.fromisoformat(row[1]),
+            amount_ml=row[2],
+            side=row[3],
         )
         for row in rows
     ]
@@ -420,6 +422,62 @@ def get_last_growth_record(baby_id: int) -> GrowthRecord | None:
             SELECT created_at, weight_kg, length_cm, head_circumference_cm
             FROM growth_records
             WHERE baby_id = {placeholder}
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (baby_id,),
+        )
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return GrowthRecord(
+        created_at=datetime.fromisoformat(row[0]),
+        weight_kg=row[1],
+        length_cm=row[2],
+        head_circumference_cm=row[3],
+    )
+
+
+def get_last_weight_record(baby_id: int) -> GrowthRecord | None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT created_at, weight_kg, length_cm, head_circumference_cm
+            FROM growth_records
+            WHERE baby_id = {placeholder} AND weight_kg IS NOT NULL
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (baby_id,),
+        )
+        row = cursor.fetchone()
+
+    if row is None:
+        return None
+
+    return GrowthRecord(
+        created_at=datetime.fromisoformat(row[0]),
+        weight_kg=row[1],
+        length_cm=row[2],
+        head_circumference_cm=row[3],
+    )
+
+
+def get_last_length_record(baby_id: int) -> GrowthRecord | None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT created_at, weight_kg, length_cm, head_circumference_cm
+            FROM growth_records
+            WHERE baby_id = {placeholder} AND length_cm IS NOT NULL
             ORDER BY created_at DESC
             LIMIT 1
             """,

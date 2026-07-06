@@ -39,7 +39,9 @@ from baby_milk_tracker.storage import (
     get_growth_records,
     get_last_feeding,
     get_last_growth_record,
+    get_last_length_record,
     get_last_pumping,
+    get_last_weight_record,
     get_medical_studies,
     get_next_appointment,
     get_pumpings_since,
@@ -103,6 +105,8 @@ def index():
         get_last_pumping(baby_id) if baby_id and settings["show_pumpings"] else None
     )
     last_growth_record = get_last_growth_record(baby_id) if baby_id else None
+    last_weight_record = get_last_weight_record(baby_id) if baby_id else None
+    last_length_record = get_last_length_record(baby_id) if baby_id else None
     next_appointment = get_next_appointment(baby_id) if baby_id else None
 
     today_ml = 0
@@ -115,8 +119,8 @@ def index():
         today_ml = sum(f.amount_ml for f in today_feedings if f.amount_ml)
         if settings.get("daily_ml_target"):
             recommended_ml = settings["daily_ml_target"]
-        elif last_growth_record:
-            recommended_ml = int(last_growth_record.weight_kg * 200)
+        elif last_weight_record:
+            recommended_ml = int(last_weight_record.weight_kg * 200)
 
     baby_age_days = None
     formatted_baby_age = None
@@ -134,14 +138,14 @@ def index():
 
     if baby_profile and last_growth_record and baby_age_days is not None:
         weight_percentile = (
-            get_weight_percentile(baby_profile, last_growth_record)
-            if last_growth_record.weight_kg is not None
+            get_weight_percentile(baby_profile, last_weight_record)
+            if last_weight_record
             else None
         )
 
         length_percentile = (
-            get_length_percentile(baby_profile, last_growth_record)
-            if last_growth_record.length_cm is not None
+            get_length_percentile(baby_profile, last_length_record)
+            if last_length_record
             else None
         )
 
