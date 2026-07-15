@@ -48,6 +48,17 @@ class Appointment:
 
 
 @dataclass
+class Medication:
+    name: str
+    frequency_hours: float
+    start_datetime: datetime
+    end_datetime: datetime
+    dose_amount: str | None = None
+    last_dose_at: datetime | None = None
+    id: int | None = None
+
+
+@dataclass
 class MedicalStudy:
     study_date: datetime
     study_type: str

@@ -50,6 +50,10 @@
                                 <i class="fa-solid fa-ruler"></i>
                                 Crecimiento
                             </a>
+                            <a class="menu-item" href="{{ url_for('medications') }}">
+                                <i class="fa-solid fa-pills"></i>
+                                Medicamentos
+                            </a>
                             <a class="menu-item" href="{{ url_for('appointments') }}">
                                 <i class="fa-solid fa-calendar-check"></i>
                                 Turnos médicos
@@ -245,6 +249,35 @@
                     {% endif %}
                 </div>
             </div>
+
+        </div>
+        {% endif %}
+
+        {% if active_medications %}
+        <div class="card med-card">
+
+            <div class="med-card-header">
+                <h2><i class="fa-solid fa-pills"></i> Medicamentos</h2>
+                <a href="{{ url_for('medications') }}" class="med-manage-link">Administrar</a>
+            </div>
+
+            {% for med in active_medications %}
+            <div class="med-row med-{{ med.status }}"
+                 data-next="{{ med.next_dose_iso }}"
+                 data-id="{{ med.id }}"
+                 data-name="{{ med.name }}">
+                <div class="med-info">
+                    <strong class="med-name">{{ med.name }}</strong>
+                    <span class="med-meta">Cada {{ med.frequency_str }} · hasta {{ med.end_date }}</span>
+                </div>
+                <div class="med-right">
+                    <span class="med-countdown-text" data-next="{{ med.next_dose_iso }}">{{ med.time_str }}</span>
+                    <form method="POST" action="/medications/{{ med.id }}/dose">
+                        <button type="submit" class="med-dose-btn">Dar ahora</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
 
         </div>
         {% endif %}
@@ -492,6 +525,59 @@
         updateElapsedTimes();
 
         setInterval(updateElapsedTimes, 1000);
+
+        // --- Medicamentos: countdown + notificaciones ---
+        const notifiedKey = 'bber_notified_meds';
+        const notified = JSON.parse(localStorage.getItem(notifiedKey) || '{}');
+
+        function updateMedCountdowns() {
+            document.querySelectorAll('.med-countdown-text').forEach(el => {
+                const next = new Date(el.dataset.next);
+                const now = new Date();
+                const diffMs = next - now;
+                const row = el.closest('.med-row');
+
+                if (diffMs <= 0) {
+                    const absM = Math.abs(Math.floor(diffMs / 60000));
+                    const h = Math.floor(absM / 60), m = absM % 60;
+                    el.textContent = h ? `hace ${h}h ${m}m` : `hace ${absM} min`;
+                    row.className = 'med-row med-overdue';
+
+                    // Notificación
+                    const medName = row.dataset.name;
+                    const nKey = `${row.dataset.id}_${row.dataset.next}`;
+                    if (!notified[nKey]) {
+                        notified[nKey] = true;
+                        localStorage.setItem(notifiedKey, JSON.stringify(notified));
+                        if (Notification.permission === 'granted') {
+                            navigator.serviceWorker.ready.then(reg => {
+                                reg.showNotification(`BBer — ${medName}`, {
+                                    body: `Es hora de dar ${medName}`,
+                                    icon: '/static/icons/icon-192.png',
+                                });
+                            }).catch(() => {
+                                new Notification(`BBer — ${medName}`, {
+                                    body: `Es hora de dar ${medName}`,
+                                });
+                            });
+                        }
+                    }
+                } else {
+                    const totalM = Math.floor(diffMs / 60000);
+                    const h = Math.floor(totalM / 60), m = totalM % 60;
+                    el.textContent = h ? `en ${h}h ${m}m` : `en ${totalM} min`;
+                    row.className = `med-row ${totalM < 30 ? 'med-soon' : 'med-ok'}`;
+                }
+            });
+        }
+
+        if (document.querySelector('.med-row')) {
+            if (Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+            updateMedCountdowns();
+            setInterval(updateMedCountdowns, 30000);
+        }
 
         if ("serviceWorker" in navigator) {
             navigator.serviceWorker.register(

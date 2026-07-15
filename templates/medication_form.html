@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo medicamento — BBer{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Nuevo medicamento</h1>
+
+    <form method="POST">
+
+        <label for="name">Medicamento</label>
+        <input id="name" type="text" name="name" required placeholder="Ej: Ibuprofeno, Amoxicilina">
+
+        <label for="dose_amount">Cantidad por dosis <span class="optional-hint">(opcional)</span></label>
+        <input id="dose_amount" type="text" name="dose_amount" placeholder="Ej: 5 ml, 200 mg">
+
+        <label for="frequency_select">Frecuencia</label>
+        <select id="frequency_select" name="frequency_hours" required>
+            <option value="">Seleccionar...</option>
+            <option value="4">Cada 4 horas</option>
+            <option value="6">Cada 6 horas</option>
+            <option value="8">Cada 8 horas (3 veces al día)</option>
+            <option value="12">Cada 12 horas (2 veces al día)</option>
+            <option value="24">Una vez al día (24h)</option>
+            <option value="custom">Otra frecuencia...</option>
+        </select>
+        <input id="frequency_custom" type="number" name="frequency_hours_custom"
+               min="0.5" max="72" step="0.5" placeholder="Horas"
+               style="display:none; margin-top:8px;">
+
+        <label for="start_datetime">Primera dosis (inicio)</label>
+        <input id="start_datetime" type="datetime-local" name="start_datetime" value="{{ now_str }}" required>
+
+        <label for="end_datetime">Último día del tratamiento</label>
+        <input id="end_datetime" type="datetime-local" name="end_datetime" id="end_datetime">
+        <small class="field-hint">El medicamento dejará de aparecer después de esta fecha.</small>
+
+        <button type="submit" class="button">Guardar</button>
+        <a href="{{ url_for('medications') }}" class="button secondary-button">Cancelar</a>
+
+    </form>
+</div>
+
+<script>
+    const select = document.getElementById('frequency_select');
+    const custom = document.getElementById('frequency_custom');
+    const startInput = document.getElementById('start_datetime');
+    const endInput = document.getElementById('end_datetime');
+
+    // Set default end date to +7 days from start
+    function updateDefaultEnd() {
+        if (!endInput.value && startInput.value) {
+            const start = new Date(startInput.value);
+            start.setDate(start.getDate() + 7);
+            const pad = n => String(n).padStart(2, '0');
+            endInput.value = `${start.getFullYear()}-${pad(start.getMonth()+1)}-${pad(start.getDate())}T${pad(start.getHours())}:${pad(start.getMinutes())}`;
+        }
+    }
+    startInput.addEventListener('change', updateDefaultEnd);
+    updateDefaultEnd();
+
+    select.addEventListener('change', () => {
+        if (select.value === 'custom') {
+            custom.style.display = 'block';
+            custom.required = true;
+            select.name = '';
+            custom.name = 'frequency_hours';
+        } else {
+            custom.style.display = 'none';
+            custom.required = false;
+            select.name = 'frequency_hours';
+            custom.name = 'frequency_hours_custom';
+        }
+    });
+</script>
+{% endblock %}

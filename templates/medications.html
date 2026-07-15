@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Medicamentos — BBer{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="header-row">
+        <h1><i class="fa-solid fa-pills"></i> Medicamentos</h1>
+        <a href="{{ url_for('index') }}" class="back-link">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+    </div>
+
+    <a class="button" href="{{ url_for('new_medication') }}" style="margin-bottom: 20px; display: flex;">
+        <i class="fa-solid fa-plus"></i>
+        Agregar medicamento
+    </a>
+
+    {% if active %}
+        <h2 style="margin-bottom: 12px;">Activos</h2>
+        {% for med in active %}
+        <div class="med-row med-{{ med.status }}"
+             data-next="{{ med.next_dose_iso }}"
+             data-id="{{ med.id }}"
+             data-name="{{ med.name }}">
+            <div class="med-info">
+                <strong class="med-name">{{ med.name }}</strong>
+                {% if med.dose_amount %}
+                    <span class="med-meta">{{ med.dose_amount }} · Cada {{ med.frequency_str }}</span>
+                {% else %}
+                    <span class="med-meta">Cada {{ med.frequency_str }}</span>
+                {% endif %}
+                <span class="med-meta">hasta {{ med.end_date }}</span>
+                <span class="med-countdown-text" data-next="{{ med.next_dose_iso }}">{{ med.time_str }}</span>
+            </div>
+            <div class="med-actions">
+                <a href="/medications/{{ med.id }}/dose" class="button med-dose-btn">
+                    Registrar dosis
+                </a>
+                <form method="POST" action="/medications/{{ med.id }}/delete"
+                      onsubmit="return confirm('¿Eliminar {{ med.name }}?')">
+                    <button type="submit" class="button secondary-button med-delete-btn">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p class="empty-state">No hay medicamentos activos.</p>
+    {% endif %}
+
+    {% if finished %}
+        <h2 style="margin-top: 24px; margin-bottom: 12px; color: #aaa;">Terminados</h2>
+        {% for med in finished %}
+        <div class="med-row med-finished">
+            <div class="med-info">
+                <strong class="med-name">{{ med.name }}</strong>
+                <span class="med-meta">
+                    {% if med.dose_amount %}{{ med.dose_amount }} · {% endif %}Cada {{ med.frequency_str }} · hasta {{ med.end_date }}
+                </span>
+            </div>
+            <form method="POST" action="/medications/{{ med.id }}/delete"
+                  onsubmit="return confirm('¿Eliminar {{ med.name }}?')">
+                <button type="submit" class="button secondary-button med-delete-btn">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<script>
+function updateMedCountdowns() {
+    document.querySelectorAll('.med-countdown-text').forEach(el => {
+        const next = new Date(el.dataset.next);
+        const now = new Date();
+        const diffMs = next - now;
+        const row = el.closest('.med-row');
+
+        if (diffMs <= 0) {
+            const absM = Math.abs(Math.floor(diffMs / 60000));
+            const h = Math.floor(absM / 60), m = absM % 60;
+            el.textContent = h ? `hace ${h}h ${m}m` : `hace ${absM} min`;
+            row.className = 'med-row med-overdue';
+        } else {
+            const totalM = Math.floor(diffMs / 60000);
+            const h = Math.floor(totalM / 60), m = totalM % 60;
+            el.textContent = h ? `en ${h}h ${m}m` : `en ${totalM} min`;
+            row.className = `med-row ${totalM < 30 ? 'med-soon' : 'med-ok'}`;
+        }
+    });
+}
+updateMedCountdowns();
+setInterval(updateMedCountdowns, 30000);
+</script>
+{% endblock %}

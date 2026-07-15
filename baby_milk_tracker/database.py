@@ -172,6 +172,23 @@ def init_db() -> None:
             """
         )
 
+        cursor.execute(
+            f"""
+            CREATE TABLE IF NOT EXISTS medications (
+                id {id_type},
+                user_id INTEGER NOT NULL,
+                baby_id INTEGER NOT NULL,
+                name TEXT NOT NULL,
+                dose_amount TEXT,
+                frequency_hours REAL NOT NULL,
+                start_datetime TEXT NOT NULL,
+                end_datetime TEXT NOT NULL,
+                last_dose_at TEXT,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
+
         # Add baby_id to existing tables that predate this schema
         _add_column_if_not_exists(cursor, "feedings", "baby_id", "INTEGER")
         _add_column_if_not_exists(cursor, "pumpings", "baby_id", "INTEGER")

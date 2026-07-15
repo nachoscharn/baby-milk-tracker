@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 
 from flask import Flask, redirect, render_template, request, session, url_for
@@ -13,6 +13,7 @@ from baby_milk_tracker.models import (
     Feeding,
     GrowthRecord,
     MedicalStudy,
+    Medication,
     Pumping,
 )
 from baby_milk_tracker.percentiles import (
@@ -29,9 +30,12 @@ from baby_milk_tracker.storage import (
     delete_feeding,
     delete_growth_record,
     delete_medical_study,
+    delete_medication,
     delete_pumping,
     finish_feeding,
+    get_active_medications,
     get_all_feedings,
+    get_all_medications,
     get_all_pumpings,
     get_appointments,
     get_baby_for_user,
@@ -43,15 +47,18 @@ from baby_milk_tracker.storage import (
     get_last_pumping,
     get_last_weight_record,
     get_medical_studies,
+    get_medication,
     get_next_appointment,
     get_pumpings_since,
     get_start_datetime,
     get_user_settings,
+    record_medication_dose,
     save_appointment,
     save_baby,
     save_feeding,
     save_growth_record,
     save_medical_study,
+    save_medication,
     save_pumping,
     save_user_settings,
 )
@@ -162,11 +169,22 @@ def index():
         else:
             percentile_status = "age_out_of_range"
 
+    now_arg = now_argentina().replace(tzinfo=None)
+    active_medications = (
+        [
+            _medication_display(m, now_arg)
+            for m in get_active_medications(baby_id, session["user_id"])
+        ]
+        if baby_id
+        else []
+    )
+
     return render_template(
         "index.html",
         last_feeding=last_feeding,
         last_pumping=last_pumping,
         baby_profile=baby_profile,
+        active_medications=active_medications,
         last_growth_record=last_growth_record,
         baby_age_days=baby_age_days,
         formatted_baby_age=formatted_baby_age,
@@ -564,6 +582,135 @@ def baby_profile():
         "baby_profile.html",
         profile=profile,
     )
+
+
+def _medication_display(med: Medication, now: datetime) -> dict:
+    last_dose = med.last_dose_at or med.start_datetime
+    next_dose = last_dose + timedelta(hours=med.frequency_hours)
+    minutes_until = (next_dose - now).total_seconds() / 60
+
+    freq_h = med.frequency_hours
+    if freq_h == int(freq_h):
+        frequency_str = f"{int(freq_h)}h"
+    else:
+        h = int(freq_h)
+        m = int((freq_h - h) * 60)
+        frequency_str = f"{h}h {m}m" if h else f"{m}m"
+
+    if minutes_until <= 0:
+        abs_m = int(abs(minutes_until))
+        h, m = divmod(abs_m, 60)
+        time_str = f"hace {h}h {m}m" if h else f"hace {abs_m} min"
+        status = "overdue"
+    elif minutes_until < 30:
+        time_str = f"en {int(minutes_until)} min"
+        status = "soon"
+    else:
+        h = int(minutes_until // 60)
+        m = int(minutes_until % 60)
+        time_str = f"en {h}h {m}m" if h and m else (f"en {h}h" if h else f"en {m} min")
+        status = "ok"
+
+    return {
+        "id": med.id,
+        "name": med.name,
+        "dose_amount": med.dose_amount,
+        "next_dose_iso": next_dose.isoformat(),
+        "time_str": time_str,
+        "status": status,
+        "frequency_str": frequency_str,
+        "end_date": med.end_datetime.strftime("%d/%m/%Y"),
+        "frequency_hours": med.frequency_hours,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Medications
+# ---------------------------------------------------------------------------
+
+
+@app.route("/medications")
+@login_required
+def medications():
+    baby_id = current_baby_id()
+    if not baby_id:
+        return redirect(url_for("baby_profile"))
+
+    user_id = session["user_id"]
+    now = now_argentina().replace(tzinfo=None)
+    all_meds = get_all_medications(baby_id, user_id)
+
+    active, finished = [], []
+    for med in all_meds:
+        display = _medication_display(med, now)
+        if med.end_datetime > now:
+            active.append(display)
+        else:
+            finished.append(display)
+
+    return render_template("medications.html", active=active, finished=finished)
+
+
+@app.route("/medications/new", methods=["GET", "POST"])
+@login_required
+def new_medication():
+    baby_id = current_baby_id()
+    if not baby_id:
+        return redirect(url_for("baby_profile"))
+
+    if request.method == "POST":
+        name = request.form["name"].strip()
+        dose_amount = request.form.get("dose_amount", "").strip() or None
+        frequency_hours = float(request.form["frequency_hours"])
+        start_str = request.form.get("start_datetime")
+        end_str = request.form.get("end_datetime")
+        now_arg = now_argentina().replace(tzinfo=None)
+        start_dt = datetime.fromisoformat(start_str) if start_str else now_arg
+        end_dt = (
+            datetime.fromisoformat(end_str) if end_str else now_arg + timedelta(days=7)
+        )
+
+        med = Medication(
+            name=name,
+            dose_amount=dose_amount,
+            frequency_hours=frequency_hours,
+            start_datetime=start_dt,
+            end_datetime=end_dt,
+        )
+        save_medication(med, baby_id, session["user_id"])
+        return redirect(url_for("medications"))
+
+    now_str = now_argentina().replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M")
+    return render_template("medication_form.html", now_str=now_str)
+
+
+@app.route("/medications/<int:medication_id>/dose", methods=["GET", "POST"])
+@login_required
+def give_medication_dose(medication_id: int):
+    user_id = session["user_id"]
+    med = get_medication(medication_id, user_id)
+    if not med:
+        return redirect(url_for("medications"))
+
+    if request.method == "POST":
+        given_str = request.form.get("given_at")
+        given_at = (
+            datetime.fromisoformat(given_str)
+            if given_str
+            else now_argentina().replace(tzinfo=None)
+        )
+        record_medication_dose(medication_id, user_id, given_at)
+        return redirect(url_for("index"))
+
+    now_str = now_argentina().replace(tzinfo=None).strftime("%Y-%m-%dT%H:%M")
+    return render_template("medication_dose_form.html", med=med, now_str=now_str)
+
+
+@app.route("/medications/<int:medication_id>/delete", methods=["POST"])
+@login_required
+def delete_medication_route(medication_id: int):
+    delete_medication(medication_id, session["user_id"])
+    return redirect(url_for("medications"))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar dosis — BBer{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Registrar dosis</h1>
+
+    <div class="med-summary-box">
+        <strong>{{ med.name }}</strong>
+        {% if med.dose_amount %}<span>{{ med.dose_amount }}</span>{% endif %}
+    </div>
+
+    <form method="POST">
+        <label for="given_at">Hora de la dosis</label>
+        <input id="given_at" type="datetime-local" name="given_at" value="{{ now_str }}">
+        <small class="field-hint">Podés cambiarlo si la dosis fue antes.</small>
+
+        <button type="submit" class="button">Registrar</button>
+        <a href="{{ url_for('medications') }}" class="button secondary-button">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

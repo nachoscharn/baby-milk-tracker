@@ -11,6 +11,7 @@ from baby_milk_tracker.models import (
     Feeding,
     GrowthRecord,
     MedicalStudy,
+    Medication,
     Pumping,
 )
 from baby_milk_tracker.time_utils import now_argentina
@@ -758,6 +759,137 @@ def save_user_settings(user_id: int, settings: dict) -> None:
                 """,
                 (user_id, show_pumpings, daily_ml_target),
             )
+        conn.commit()
+
+
+# ---------------------------------------------------------------------------
+# Medications
+# ---------------------------------------------------------------------------
+
+
+def _row_to_medication(row) -> Medication:
+    # row: id, name, dose_amount, frequency_hours, start_datetime, end_datetime, last_dose_at
+    med = Medication(
+        name=row[1],
+        dose_amount=row[2],
+        frequency_hours=row[3],
+        start_datetime=datetime.fromisoformat(row[4]),
+        end_datetime=datetime.fromisoformat(row[5]),
+        last_dose_at=datetime.fromisoformat(row[6]) if row[6] else None,
+    )
+    med.id = row[0]
+    return med
+
+
+def get_active_medications(baby_id: int, user_id: int) -> list[Medication]:
+    placeholder = get_placeholder()
+    now = now_argentina().replace(tzinfo=None)
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT id, name, dose_amount, frequency_hours, start_datetime, end_datetime, last_dose_at
+            FROM medications
+            WHERE baby_id = {placeholder} AND user_id = {placeholder}
+            ORDER BY name ASC
+            """,
+            (baby_id, user_id),
+        )
+        rows = cursor.fetchall()
+
+    return [_row_to_medication(r) for r in rows if datetime.fromisoformat(r[5]) > now]
+
+
+def get_all_medications(baby_id: int, user_id: int) -> list[Medication]:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT id, name, dose_amount, frequency_hours, start_datetime, end_datetime, last_dose_at
+            FROM medications
+            WHERE baby_id = {placeholder} AND user_id = {placeholder}
+            ORDER BY start_datetime DESC
+            """,
+            (baby_id, user_id),
+        )
+        rows = cursor.fetchall()
+
+    return [_row_to_medication(row) for row in rows]
+
+
+def get_medication(medication_id: int, user_id: int) -> Medication | None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"""
+            SELECT id, name, dose_amount, frequency_hours, start_datetime, end_datetime, last_dose_at
+            FROM medications
+            WHERE id = {placeholder} AND user_id = {placeholder}
+            """,
+            (medication_id, user_id),
+        )
+        row = cursor.fetchone()
+
+    return _row_to_medication(row) if row else None
+
+
+def save_medication(med: Medication, baby_id: int, user_id: int) -> int:
+    placeholder = get_placeholder()
+    now = now_argentina().replace(tzinfo=None)
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        med_id = insert_returning_id(
+            cursor,
+            f"""
+            INSERT INTO medications
+                (user_id, baby_id, name, dose_amount, frequency_hours, start_datetime, end_datetime, created_at)
+            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+            """,
+            (
+                user_id,
+                baby_id,
+                med.name,
+                med.dose_amount,
+                med.frequency_hours,
+                med.start_datetime.isoformat(),
+                med.end_datetime.isoformat(),
+                now.isoformat(),
+            ),
+        )
+        conn.commit()
+
+    return med_id
+
+
+def record_medication_dose(
+    medication_id: int, user_id: int, given_at: datetime
+) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"UPDATE medications SET last_dose_at = {placeholder} WHERE id = {placeholder} AND user_id = {placeholder}",
+            (given_at.isoformat(), medication_id, user_id),
+        )
+        conn.commit()
+
+
+def delete_medication(medication_id: int, user_id: int) -> None:
+    placeholder = get_placeholder()
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"DELETE FROM medications WHERE id = {placeholder} AND user_id = {placeholder}",
+            (medication_id, user_id),
+        )
         conn.commit()
 
 

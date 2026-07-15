@@ -619,3 +619,136 @@ textarea {
     font-size: 0.85rem;
     color: #7a6555;
 }
+
+/* ============================================================
+   Medications
+   ============================================================ */
+
+.med-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.med-card-header h2 {
+    margin: 0;
+}
+.med-manage-link {
+    font-size: 0.8rem;
+    color: #8b5a2b;
+    text-decoration: none;
+    font-weight: 600;
+}
+.med-manage-link:hover { text-decoration: underline; }
+
+.med-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    border-left: 4px solid transparent;
+    background: rgba(139, 90, 43, 0.06);
+}
+.med-row.med-ok    { border-left-color: #4caf7a; }
+.med-row.med-soon  { border-left-color: #e8a020; background: rgba(232, 160, 32, 0.07); }
+.med-row.med-overdue { border-left-color: #c0392b; background: rgba(192, 57, 43, 0.07); }
+.med-row.med-finished { border-left-color: #ccc; opacity: 0.65; }
+
+.med-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.med-name {
+    font-size: 0.95rem;
+    color: #3b3128;
+}
+.med-meta {
+    font-size: 0.78rem;
+    color: #9a8070;
+}
+.med-countdown-text {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #8b5a2b;
+}
+.med-row.med-overdue .med-countdown-text { color: #c0392b; }
+.med-row.med-soon   .med-countdown-text { color: #c07800; }
+
+.med-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.med-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.med-dose-btn {
+    font-size: 0.78rem;
+    padding: 6px 12px;
+    background: #8b5a2b;
+    color: #f7f2eb;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+}
+.med-dose-btn:hover { background: #7a4e25; }
+
+.med-delete-btn {
+    font-size: 0.78rem;
+    padding: 6px 10px;
+}
+
+.med-summary-box {
+    background: rgba(139, 90, 43, 0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.med-summary-box strong { font-size: 1rem; color: #3b3128; }
+.med-summary-box span   { font-size: 0.85rem; color: #9a8070; }
+
+.empty-state {
+    color: #9a8070;
+    font-style: italic;
+    text-align: center;
+    padding: 16px 0;
+}
+
+.optional-hint {
+    font-size: 0.78rem;
+    color: #9a8070;
+    font-weight: 400;
+}
+
+.field-hint {
+    font-size: 0.78rem;
+    color: #9a8070;
+    display: block;
+    margin-top: 4px;
+    margin-bottom: 12px;
+}
+
+.back-link {
+    color: #8b5a2b;
+    font-size: 1.1rem;
+    text-decoration: none;
+    padding: 4px 8px;
+}
