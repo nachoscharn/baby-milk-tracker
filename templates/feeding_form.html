@@ -96,7 +96,7 @@
                 name="created_at"
             >
 
-            <button type="submit">
+            <button type="submit" id="submit-btn">
                 <i class="fa-solid fa-check"></i>
                 Guardar
             </button>
@@ -135,6 +135,13 @@
         .addEventListener("change", updateForm);
 
     updateForm();
+
+    // Deshabilitar el botón al enviar para evitar duplicados mientras Render despierta
+    document.querySelector("form").addEventListener("submit", function() {
+        const btn = document.getElementById("submit-btn");
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+    });
 </script>
 
 </body>

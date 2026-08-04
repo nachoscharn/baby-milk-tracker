@@ -201,6 +201,11 @@ def index():
     )
 
 
+@app.route("/ping")
+def ping():
+    return "ok", 200
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if "user_id" in session:
